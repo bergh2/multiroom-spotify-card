@@ -173,7 +173,6 @@ export const styles = css`
     height: 100%;
     object-fit: cover;
     opacity: 0;
-    transition: opacity 0.25s ease;
   }
   .art img.loaded {
     opacity: 1;
@@ -350,6 +349,9 @@ export const styles = css`
   }
   .speaker-row.unavailable {
     opacity: 0.45;
+  }
+  .speaker-row.standby .sp-vol {
+    color: var(--text3);
   }
   .dot {
     flex: 0 0 auto;

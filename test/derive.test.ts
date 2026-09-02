@@ -31,15 +31,27 @@ describe('deriveSpeakers', () => {
     const sp = deriveSpeakers(hass, cfg);
     expect(sp[0]).toMatchObject({ name: 'Living', vol: 42, on: true, available: true });
     expect(sp[1]).toMatchObject({ name: 'Kök', vol: 28, on: false, available: true });
-    expect(sp[2]).toMatchObject({ name: 'c', vol: 0, on: false, available: false });
+    expect(sp[2]).toMatchObject({ name: 'c', vol: 0, on: false, available: false, standby: false });
+  });
+
+  it('flags Cast entities that are off without volume attributes as standby', () => {
+    const hass = hassWith({
+      'media_player.a': { state: 'off', attributes: { friendly_name: 'A' } },
+      'media_player.b': { state: 'off', attributes: {} },
+      'media_player.c': { state: 'off', attributes: {} },
+    });
+    const sp = deriveSpeakers(hass, cfg);
+    expect(sp[0]).toMatchObject({ standby: true, on: false, available: true });
+    expect(groupSummary(sp)).toBe('Speakers idle');
+    expect(activePreset(sp, cfg.presets, 3)).toBeNull();
   });
 });
 
 describe('activePreset', () => {
   const mk = (a: [number, boolean], b: [number, boolean], c: [number, boolean], cAvail = true): Speaker[] => [
-    { entity: 'media_player.a', name: 'a', vol: a[0], on: a[1], available: true },
-    { entity: 'media_player.b', name: 'b', vol: b[0], on: b[1], available: true },
-    { entity: 'media_player.c', name: 'c', vol: c[0], on: c[1] && cAvail, available: cAvail },
+    { entity: 'media_player.a', name: 'a', vol: a[0], on: a[1], available: true, standby: false },
+    { entity: 'media_player.b', name: 'b', vol: b[0], on: b[1], available: true, standby: false },
+    { entity: 'media_player.c', name: 'c', vol: c[0], on: c[1] && cAvail, available: cAvail, standby: false },
   ];
   it('matches within tolerance and requires others muted', () => {
     expect(activePreset(mk([31, true], [20, true], [50, false]), cfg.presets, 3)).toBe('Chill');
@@ -57,7 +69,7 @@ describe('activePreset', () => {
 
 describe('groupSummary', () => {
   const sp = (on: boolean[], names = ['Living Room', 'Kitchen', 'Bedroom']): Speaker[] =>
-    on.map((o, i) => ({ entity: `e${i}`, name: names[i], vol: 10, on: o, available: true }));
+    on.map((o, i) => ({ entity: `e${i}`, name: names[i], vol: 10, on: o, available: true, standby: false }));
   it('formats the three cases', () => {
     expect(groupSummary(sp([false, false, false]))).toBe('No speakers selected');
     expect(groupSummary(sp([false, true, false]))).toBe('Kitchen');

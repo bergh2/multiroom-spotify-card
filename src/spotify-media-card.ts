@@ -55,6 +55,7 @@ export class SpotifyMediaCard extends LitElement {
   private _fp = '';
   private _entryId = '';
   private _overrides = new Map<string, Override>();
+  private _intent = new Map<string, Omit<Override, 'until'>>();
   private _seek: SeekOverride | null = null;
   private _broken = new Set<string>();
   private _throttled = new Map<string, (v: number) => void>();
@@ -227,19 +228,38 @@ export class SpotifyMediaCard extends LitElement {
 
   // ---- speakers ----------------------------------------------------------
 
+  /**
+   * Live speaker state with two local layers on top:
+   * - short-lived optimistic overrides right after a service call, and
+   * - "intent" values remembered for speakers that are idle (Cast reports no
+   *   volume while off), so a preset or slider set before playback starts stays visible.
+   */
   private _speakers(hass: HomeAssistant, cfg: NormalizedConfig, now: number): Speaker[] {
-    return deriveSpeakers(hass, cfg).map((sp) => {
+    return deriveSpeakers(hass, cfg).map((base) => {
+      let sp = base;
+      if (sp.standby) {
+        const intent = this._intent.get(sp.entity);
+        if (intent) sp = { ...sp, standby: false, vol: intent.vol ?? 0, on: intent.on ?? true };
+      } else {
+        this._intent.delete(sp.entity);
+      }
       const o = this._overrides.get(sp.entity);
       if (!o) return sp;
       if (now >= o.until) {
         this._overrides.delete(sp.entity);
         return sp;
       }
-      return { ...sp, vol: o.vol ?? sp.vol, on: o.on ?? sp.on };
+      return { ...sp, standby: false, vol: o.vol ?? sp.vol, on: o.on ?? sp.on };
     });
   }
 
+  private _remember(entity: string, patch: Omit<Override, 'until'>): void {
+    const prev = this._intent.get(entity) ?? {};
+    this._intent.set(entity, { ...prev, ...patch });
+  }
+
   private _bump(entity: string, patch: Omit<Override, 'until'>, ms = OVERRIDE_MS): void {
+    this._remember(entity, patch);
     this._overrides.set(entity, { ...patch, until: Date.now() + ms });
     this.requestUpdate();
     window.setTimeout(() => this.requestUpdate(), ms + 50);
@@ -305,6 +325,7 @@ export class SpotifyMediaCard extends LitElement {
     };
     const move = (ev: PointerEvent) => {
       const v = pct(ev);
+      this._remember(sp.entity, { vol: v, on: true });
       this._overrides.set(sp.entity, { vol: v, on: true, until: Infinity });
       this.requestUpdate();
       send(v);
@@ -536,7 +557,7 @@ export class SpotifyMediaCard extends LitElement {
   }
 
   private _renderSpeaker(sp: Speaker): TemplateResult {
-    return html`<div class=${classMap({ 'speaker-row': true, on: sp.on, unavailable: !sp.available })}>
+    return html`<div class=${classMap({ 'speaker-row': true, on: sp.on, unavailable: !sp.available, standby: sp.standby })}>
       <button class="dot" title=${sp.available ? 'Toggle speaker' : 'Unavailable'} ?disabled=${!sp.available} @click=${() => this._toggle(sp)}>
         ${icons.speaker}
       </button>
@@ -544,7 +565,7 @@ export class SpotifyMediaCard extends LitElement {
       <div class="track-hit" @pointerdown=${(e: PointerEvent) => this._dragStart(e, sp)}>
         <div class="track"><div class="fill" style=${styleMap({ width: `${sp.on ? sp.vol : 0}%` })}></div></div>
       </div>
-      <span class="sp-vol">${sp.vol}</span>
+      <span class="sp-vol">${sp.standby ? '–' : sp.vol}</span>
     </div>`;
   }
 
@@ -597,7 +618,7 @@ export class SpotifyMediaCard extends LitElement {
             (sp) => html`<button class=${classMap({ 'sheet-row': true, on: sp.on })} ?disabled=${!sp.available} @click=${() => this._toggle(sp)}>
               <span class="check">${icons.check}</span>
               <span class="sheet-name ellipsis">${sp.name}</span>
-              <span class="sheet-kind">${sp.available ? (sp.on ? `${sp.vol}` : 'muted') : 'offline'}</span>
+              <span class="sheet-kind">${!sp.available ? 'offline' : sp.standby ? 'idle' : sp.on ? `${sp.vol}` : 'muted'}</span>
             </button>`,
           )}
         </div>

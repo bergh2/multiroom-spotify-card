@@ -31,7 +31,8 @@ export async function applyPreset(hass: HomeAssistant, speakers: Speaker[], pres
     if (!sp.available) continue;
     const level = preset.levels[sp.entity];
     if (level === undefined) {
-      if (sp.on) toMute.push(sp.entity);
+      // idle Cast speakers report no mute state, so mute them explicitly too
+      if (sp.on || sp.standby) toMute.push(sp.entity);
       continue;
     }
     if (!sp.on) calls.push(setMute(hass, sp.entity, false));

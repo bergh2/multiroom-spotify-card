@@ -7,15 +7,18 @@ export function deriveSpeakers(hass: HomeAssistant, cfg: NormalizedConfig): Spea
     const st = hass.states[s.entity];
     const attrs = st?.attributes ?? {};
     const available = !!st && !UNAVAILABLE.has(st.state);
-    const level = typeof attrs.volume_level === 'number' ? attrs.volume_level : 0;
+    const hasVolume = typeof attrs.volume_level === 'number';
+    const level = hasVolume ? (attrs.volume_level as number) : 0;
     const muted = attrs.is_volume_muted === true;
+    const standby = available && !hasVolume;
     const friendly = typeof attrs.friendly_name === 'string' ? attrs.friendly_name : undefined;
     return {
       entity: s.entity,
       name: s.name ?? friendly ?? s.entity.replace('media_player.', ''),
       vol: Math.round(level * 100),
-      on: available && !muted,
+      on: available && !standby && !muted,
       available,
+      standby,
     };
   });
 }
@@ -53,13 +56,15 @@ export function deriveNowPlaying(hass: HomeAssistant, entity: string): NowPlayin
 /**
  * Name of the preset whose levels match the live speaker state, or null.
  * Speakers listed in the preset must be on and within `tolerance` of the level;
- * all other speakers must be off. Unavailable speakers are ignored.
+ * all other speakers must be off. Unavailable and standby speakers are ignored;
+ * if no speaker could be evaluated, no preset is active.
  */
 export function activePreset(speakers: Speaker[], presets: PresetConfig[], tolerance: number): string | null {
+  const live = speakers.filter((sp) => sp.available && !sp.standby);
+  if (!live.length) return null;
   for (const p of presets) {
     let ok = true;
-    for (const sp of speakers) {
-      if (!sp.available) continue;
+    for (const sp of live) {
       const level = p.levels[sp.entity];
       if (level === undefined) {
         if (sp.on) {
@@ -78,7 +83,12 @@ export function activePreset(speakers: Speaker[], presets: PresetConfig[], toler
 
 export function groupSummary(speakers: Speaker[]): string {
   const on = speakers.filter((s) => s.on);
-  if (on.length === 0) return 'No speakers selected';
+  if (on.length === 0) {
+    const available = speakers.filter((s) => s.available);
+    if (!available.length) return 'No speakers available';
+    if (available.every((s) => s.standby)) return 'Speakers idle';
+    return 'No speakers selected';
+  }
   if (on.length === 1) return on[0].name;
   return `${on[0].name} + ${on.length - 1} more`;
 }

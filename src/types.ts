@@ -88,6 +88,8 @@ export interface Speaker {
   /** unmuted and available */
   on: boolean;
   available: boolean;
+  /** entity is off/idle and reports no volume (Cast strips attributes while off) */
+  standby: boolean;
 }
 
 export interface NowPlaying {

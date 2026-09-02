@@ -296,10 +296,10 @@ const Yt = (e, t) => {
   let r, n = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = L;
   for (let a = 0; a < s; a++) {
     const l = e[a];
-    let c, d, p = -1, m = 0;
-    for (; m < l.length && (o.lastIndex = m, d = o.exec(l), d !== null); ) m = o.lastIndex, o === L ? d[1] === "!--" ? o = dt : d[1] !== void 0 ? o = ht : d[2] !== void 0 ? (St.test(d[2]) && (r = RegExp("</" + d[2], "g")), o = S) : d[3] !== void 0 && (o = S) : o === S ? d[0] === ">" ? (o = r ?? L, p = -1) : d[1] === void 0 ? p = -2 : (p = o.lastIndex - d[2].length, c = d[1], o = d[3] === void 0 ? S : d[3] === '"' ? ft : ut) : o === ft || o === ut ? o = S : o === dt || o === ht ? o = L : (o = S, r = void 0);
+    let c, p, d = -1, m = 0;
+    for (; m < l.length && (o.lastIndex = m, p = o.exec(l), p !== null); ) m = o.lastIndex, o === L ? p[1] === "!--" ? o = dt : p[1] !== void 0 ? o = ht : p[2] !== void 0 ? (St.test(p[2]) && (r = RegExp("</" + p[2], "g")), o = S) : p[3] !== void 0 && (o = S) : o === S ? p[0] === ">" ? (o = r ?? L, d = -1) : p[1] === void 0 ? d = -2 : (d = o.lastIndex - p[2].length, c = p[1], o = p[3] === void 0 ? S : p[3] === '"' ? ft : ut) : o === ft || o === ut ? o = S : o === dt || o === ht ? o = L : (o = S, r = void 0);
     const v = o === S && e[a + 1].startsWith("/>") ? " " : "";
-    n += o === L ? l + Wt : p >= 0 ? (i.push(c), l.slice(0, p) + kt + l.slice(p) + x + v) : l + x + (p === -2 ? a : v);
+    n += o === L ? l + Wt : d >= 0 ? (i.push(c), l.slice(0, d) + kt + l.slice(d) + x + v) : l + x + (d === -2 ? a : v);
   }
   return [Pt(e, n + (e[s] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), i];
 };
@@ -308,29 +308,29 @@ class D {
     let r;
     this.parts = [];
     let n = 0, o = 0;
-    const a = t.length - 1, l = this.parts, [c, d] = Yt(t, s);
+    const a = t.length - 1, l = this.parts, [c, p] = Yt(t, s);
     if (this.el = D.createElement(c, i), E.currentNode = this.el.content, s === 2 || s === 3) {
-      const p = this.el.content.firstChild;
-      p.replaceWith(...p.childNodes);
+      const d = this.el.content.firstChild;
+      d.replaceWith(...d.childNodes);
     }
     for (; (r = E.nextNode()) !== null && l.length < a; ) {
       if (r.nodeType === 1) {
-        if (r.hasAttributes()) for (const p of r.getAttributeNames()) if (p.endsWith(kt)) {
-          const m = d[o++], v = r.getAttribute(p).split(x), B = /([.?@])?(.*)/.exec(m);
-          l.push({ type: 1, index: n, name: B[2], strings: v, ctor: B[1] === "." ? Gt : B[1] === "?" ? Jt : B[1] === "@" ? Xt : Z }), r.removeAttribute(p);
-        } else p.startsWith(x) && (l.push({ type: 6, index: n }), r.removeAttribute(p));
+        if (r.hasAttributes()) for (const d of r.getAttributeNames()) if (d.endsWith(kt)) {
+          const m = p[o++], v = r.getAttribute(d).split(x), B = /([.?@])?(.*)/.exec(m);
+          l.push({ type: 1, index: n, name: B[2], strings: v, ctor: B[1] === "." ? Gt : B[1] === "?" ? Jt : B[1] === "@" ? Xt : Z }), r.removeAttribute(d);
+        } else d.startsWith(x) && (l.push({ type: 6, index: n }), r.removeAttribute(d));
         if (St.test(r.tagName)) {
-          const p = r.textContent.split(x), m = p.length - 1;
+          const d = r.textContent.split(x), m = d.length - 1;
           if (m > 0) {
             r.textContent = Y ? Y.emptyScript : "";
-            for (let v = 0; v < m; v++) r.append(p[v], R()), E.nextNode(), l.push({ type: 2, index: ++n });
-            r.append(p[m], R());
+            for (let v = 0; v < m; v++) r.append(d[v], R()), E.nextNode(), l.push({ type: 2, index: ++n });
+            r.append(d[m], R());
           }
         }
       } else if (r.nodeType === 8) if (r.data === At) l.push({ type: 2, index: n });
       else {
-        let p = -1;
-        for (; (p = r.data.indexOf(x, p + 1)) !== -1; ) l.push({ type: 7, index: n }), p += x.length - 1;
+        let d = -1;
+        for (; (d = r.data.indexOf(x, d + 1)) !== -1; ) l.push({ type: 7, index: n }), d += x.length - 1;
       }
       n++;
     }
@@ -851,7 +851,6 @@ const zt = "important", ie = " !" + zt, V = Ut(class extends Ot {
     height: 100%;
     object-fit: cover;
     opacity: 0;
-    transition: opacity 0.25s ease;
   }
   .art img.loaded {
     opacity: 1;
@@ -1028,6 +1027,9 @@ const zt = "important", ie = " !" + zt, V = Ut(class extends Ot {
   }
   .speaker-row.unavailable {
     opacity: 0.45;
+  }
+  .speaker-row.standby .sp-vol {
+    color: var(--text3);
   }
   .dot {
     flex: 0 0 auto;
@@ -1408,10 +1410,10 @@ function ae(e, t) {
     const a = r.levels ?? {};
     (typeof a != "object" || Array.isArray(a)) && f(`preset "${o}": levels must be a map of entity -> volume`);
     const l = {};
-    for (const [c, d] of Object.entries(a)) {
+    for (const [c, p] of Object.entries(a)) {
       s.has(c) || f(`preset "${o}": ${c} is not in speakers`);
-      const p = typeof d == "string" ? Number(d) : d;
-      (typeof p != "number" || !Number.isInteger(p) || p < 0 || p > 100) && f(`preset "${o}": volume for ${c} must be an integer 0-100`), l[c] = p;
+      const d = typeof p == "string" ? Number(p) : p;
+      (typeof d != "number" || !Number.isInteger(d) || d < 0 || d > 100) && f(`preset "${o}": volume for ${c} must be an integer 0-100`), l[c] = d;
     }
     return { name: o, levels: l };
   });
@@ -1440,13 +1442,14 @@ function le(e) {
 const ce = /* @__PURE__ */ new Set(["unavailable", "unknown"]);
 function pe(e, t) {
   return t.speakers.map((s) => {
-    const i = e.states[s.entity], r = (i == null ? void 0 : i.attributes) ?? {}, n = !!i && !ce.has(i.state), o = typeof r.volume_level == "number" ? r.volume_level : 0, a = r.is_volume_muted === !0, l = typeof r.friendly_name == "string" ? r.friendly_name : void 0;
+    const i = e.states[s.entity], r = (i == null ? void 0 : i.attributes) ?? {}, n = !!i && !ce.has(i.state), o = typeof r.volume_level == "number", a = o ? r.volume_level : 0, l = r.is_volume_muted === !0, c = n && !o, p = typeof r.friendly_name == "string" ? r.friendly_name : void 0;
     return {
       entity: s.entity,
-      name: s.name ?? l ?? s.entity.replace("media_player.", ""),
-      vol: Math.round(o * 100),
-      on: n && !a,
-      available: n
+      name: s.name ?? p ?? s.entity.replace("media_player.", ""),
+      vol: Math.round(a * 100),
+      on: n && !c && !l,
+      available: n,
+      standby: c
     };
   });
 }
@@ -1478,28 +1481,33 @@ function de(e, t) {
   };
 }
 function he(e, t, s) {
-  for (const i of t) {
-    let r = !0;
-    for (const n of e) {
-      if (!n.available) continue;
-      const o = i.levels[n.entity];
-      if (o === void 0) {
-        if (n.on) {
-          r = !1;
+  const i = e.filter((r) => r.available && !r.standby);
+  if (!i.length) return null;
+  for (const r of t) {
+    let n = !0;
+    for (const o of i) {
+      const a = r.levels[o.entity];
+      if (a === void 0) {
+        if (o.on) {
+          n = !1;
           break;
         }
-      } else if (!n.on || Math.abs(n.vol - o) > s) {
-        r = !1;
+      } else if (!o.on || Math.abs(o.vol - a) > s) {
+        n = !1;
         break;
       }
     }
-    if (r) return i.name;
+    if (n) return r.name;
   }
   return null;
 }
 function ue(e) {
   const t = e.filter((s) => s.on);
-  return t.length === 0 ? "No speakers selected" : t.length === 1 ? t[0].name : `${t[0].name} + ${t.length - 1} more`;
+  if (t.length === 0) {
+    const s = e.filter((i) => i.available);
+    return s.length ? s.every((i) => i.standby) ? "Speakers idle" : "No speakers selected" : "No speakers available";
+  }
+  return t.length === 1 ? t[0].name : `${t[0].name} + ${t.length - 1} more`;
 }
 function fe(e, t) {
   var r;
@@ -1582,7 +1590,7 @@ async function Pe(e, t, s) {
     if (!n.available) continue;
     const o = s.levels[n.entity];
     if (o === void 0) {
-      n.on && r.push(n.entity);
+      (n.on || n.standby) && r.push(n.entity);
       continue;
     }
     n.on || i.push(H(e, n.entity, !1)), i.push(jt(e, n.entity, o));
@@ -1740,7 +1748,7 @@ var ze = Object.defineProperty, Le = Object.getOwnPropertyDescriptor, A = (e, t,
 const vt = 1500, je = 3e3, Ne = 150;
 let _ = class extends T {
   constructor() {
-    super(...arguments), this._pickerOpen = !1, this._playlists = [], this._plStatus = "idle", this._plError = "", this._activeUri = null, this._toast = "", this._fp = "", this._entryId = "", this._overrides = /* @__PURE__ */ new Map(), this._seek = null, this._broken = /* @__PURE__ */ new Set(), this._throttled = /* @__PURE__ */ new Map(), this._fetchSeq = 0, this._lastSent = /* @__PURE__ */ new Map();
+    super(...arguments), this._pickerOpen = !1, this._playlists = [], this._plStatus = "idle", this._plError = "", this._activeUri = null, this._toast = "", this._fp = "", this._entryId = "", this._overrides = /* @__PURE__ */ new Map(), this._intent = /* @__PURE__ */ new Map(), this._seek = null, this._broken = /* @__PURE__ */ new Set(), this._throttled = /* @__PURE__ */ new Map(), this._fetchSeq = 0, this._lastSent = /* @__PURE__ */ new Map();
   }
   // ---- HA card API -------------------------------------------------------
   static getConfigElement() {
@@ -1844,14 +1852,30 @@ let _ = class extends T {
     (!t || ["off", "idle", "unavailable", "unknown", "standby"].includes(t.state)) && (this._activeUri = null, this._saveActive(this._config.group_entity, null));
   }
   // ---- speakers ----------------------------------------------------------
+  /**
+   * Live speaker state with two local layers on top:
+   * - short-lived optimistic overrides right after a service call, and
+   * - "intent" values remembered for speakers that are idle (Cast reports no
+   *   volume while off), so a preset or slider set before playback starts stays visible.
+   */
   _speakers(e, t, s) {
     return pe(e, t).map((i) => {
-      const r = this._overrides.get(i.entity);
-      return r ? s >= r.until ? (this._overrides.delete(i.entity), i) : { ...i, vol: r.vol ?? i.vol, on: r.on ?? i.on } : i;
+      let r = i;
+      if (r.standby) {
+        const o = this._intent.get(r.entity);
+        o && (r = { ...r, standby: !1, vol: o.vol ?? 0, on: o.on ?? !0 });
+      } else
+        this._intent.delete(r.entity);
+      const n = this._overrides.get(r.entity);
+      return n ? s >= n.until ? (this._overrides.delete(r.entity), r) : { ...r, standby: !1, vol: n.vol ?? r.vol, on: n.on ?? r.on } : r;
     });
   }
+  _remember(e, t) {
+    const s = this._intent.get(e) ?? {};
+    this._intent.set(e, { ...s, ...t });
+  }
   _bump(e, t, s = vt) {
-    this._overrides.set(e, { ...t, until: Date.now() + s }), this.requestUpdate(), window.setTimeout(() => this.requestUpdate(), s + 50);
+    this._remember(e, t), this._overrides.set(e, { ...t, until: Date.now() + s }), this.requestUpdate(), window.setTimeout(() => this.requestUpdate(), s + 50);
   }
   _toggle(e) {
     !this._hass || !e.available || (this._bump(e.entity, { on: !e.on }), this._run(H(this._hass, e.entity, e.on)));
@@ -1896,7 +1920,7 @@ let _ = class extends T {
       return Math.round(gt((l.clientX - c.left) / c.width) * 100);
     }, o = (l) => {
       const c = n(l);
-      this._overrides.set(t.entity, { vol: c, on: !0, until: 1 / 0 }), this.requestUpdate(), r(c);
+      this._remember(t.entity, { vol: c, on: !0 }), this._overrides.set(t.entity, { vol: c, on: !0, until: 1 / 0 }), this.requestUpdate(), r(c);
     }, a = (l) => {
       i.removeEventListener("pointermove", o), i.removeEventListener("pointerup", a), i.removeEventListener("pointercancel", a);
       const c = n(l);
@@ -1915,14 +1939,14 @@ let _ = class extends T {
     } catch {
     }
     const o = (c) => {
-      const d = r.getBoundingClientRect();
-      return gt((c.clientX - d.left) / d.width) * n;
+      const p = r.getBoundingClientRect();
+      return gt((c.clientX - p.left) / p.width) * n;
     }, a = (c) => {
       this._seek = { pos: o(c), until: 1 / 0, stamp: t.positionUpdatedAt }, this.requestUpdate();
     }, l = (c) => {
       r.removeEventListener("pointermove", a), r.removeEventListener("pointerup", l), r.removeEventListener("pointercancel", l);
-      const d = o(c);
-      this._seek = { pos: d, until: Date.now() + 2500, stamp: t.positionUpdatedAt }, this.requestUpdate(), this._run(Ee(s, i.group_entity, d));
+      const p = o(c);
+      this._seek = { pos: p, until: Date.now() + 2500, stamp: t.positionUpdatedAt }, this.requestUpdate(), this._run(Ee(s, i.group_entity, p));
     };
     r.addEventListener("pointermove", a), r.addEventListener("pointerup", l), r.addEventListener("pointercancel", l), a(e);
   }
@@ -2067,7 +2091,7 @@ let _ = class extends T {
     </div>`;
   }
   _renderSpeaker(e) {
-    return h`<div class=${y({ "speaker-row": !0, on: e.on, unavailable: !e.available })}>
+    return h`<div class=${y({ "speaker-row": !0, on: e.on, unavailable: !e.available, standby: e.standby })}>
       <button class="dot" title=${e.available ? "Toggle speaker" : "Unavailable"} ?disabled=${!e.available} @click=${() => this._toggle(e)}>
         ${$.speaker}
       </button>
@@ -2075,14 +2099,14 @@ let _ = class extends T {
       <div class="track-hit" @pointerdown=${(t) => this._dragStart(t, e)}>
         <div class="track"><div class="fill" style=${V({ width: `${e.on ? e.vol : 0}%` })}></div></div>
       </div>
-      <span class="sp-vol">${e.vol}</span>
+      <span class="sp-vol">${e.standby ? "–" : e.vol}</span>
     </div>`;
   }
   _renderNow(e, t, s) {
     const i = this._config, r = this._position(e, s), n = e.duration ?? 0, o = n > 0 ? r / n * 100 : 0;
     let a = e.title;
     e.found ? a || (a = e.state === "playing" ? "Playing" : e.state === "paused" ? "Paused" : "Nothing playing") : a = "Player not found";
-    const l = e.found ? [e.artist, t == null ? void 0 : t.name].filter(Boolean).join(" · ") : i.group_entity, c = e.found && n > 0, d = !e.found;
+    const l = e.found ? [e.artist, t == null ? void 0 : t.name].filter(Boolean).join(" · ") : i.group_entity, c = e.found && n > 0, p = !e.found;
     return h`<div class=${y({ now: !0, paused: !e.playing })}>
       <div class="now-row">
         ${this._renderArt("now-art", e.art, `now:${e.art ?? ""}`, 0)}
@@ -2094,14 +2118,14 @@ let _ = class extends T {
           <span class="now-artist ellipsis">${l}</span>
         </div>
         <div class="transport">
-          <button class="tbtn" title="Previous" ?disabled=${d} @click=${() => this._run(Se(this._hass, i.group_entity))}>${$.prev}</button>
-          <button class="play" title=${e.playing ? "Pause" : "Play"} ?disabled=${d} @click=${() => this._run(ke(this._hass, i.group_entity))}>
+          <button class="tbtn" title="Previous" ?disabled=${p} @click=${() => this._run(Se(this._hass, i.group_entity))}>${$.prev}</button>
+          <button class="play" title=${e.playing ? "Pause" : "Play"} ?disabled=${p} @click=${() => this._run(ke(this._hass, i.group_entity))}>
             ${e.playing ? $.pause : $.play}
           </button>
-          <button class="tbtn" title="Next" ?disabled=${d} @click=${() => this._run(Ae(this._hass, i.group_entity))}>${$.next}</button>
+          <button class="tbtn" title="Next" ?disabled=${p} @click=${() => this._run(Ae(this._hass, i.group_entity))}>${$.next}</button>
         </div>
       </div>
-      <div class=${y({ "progress-hit": !0, disabled: !c })} @pointerdown=${(p) => this._seekStart(p, e)}>
+      <div class=${y({ "progress-hit": !0, disabled: !c })} @pointerdown=${(d) => this._seekStart(d, e)}>
         <div class="progress"><div class="progress-fill" style=${V({ width: `${o.toFixed(1)}%` })}></div></div>
         <div class="times"><span>${yt(r)}</span><span>${n > 0 ? `-${yt(n - r)}` : "–:––"}</span></div>
       </div>
@@ -2120,7 +2144,7 @@ let _ = class extends T {
       (s) => h`<button class=${y({ "sheet-row": !0, on: s.on })} ?disabled=${!s.available} @click=${() => this._toggle(s)}>
               <span class="check">${$.check}</span>
               <span class="sheet-name ellipsis">${s.name}</span>
-              <span class="sheet-kind">${s.available ? s.on ? `${s.vol}` : "muted" : "offline"}</span>
+              <span class="sheet-kind">${s.available ? s.standby ? "idle" : s.on ? `${s.vol}` : "muted" : "offline"}</span>
             </button>`
     )}
         </div>
