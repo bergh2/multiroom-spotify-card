@@ -11,10 +11,10 @@ export interface MockHass extends HomeAssistant {
 
 const GROUP = 'media_player.alla_2';
 const SPEAKERS: Array<[string, string, number, boolean]> = [
-  ['media_player.hk_citation_100_6794f9_2', 'Vardagsrum', 0.42, false],
-  ['media_player.nesthubdacf', 'Kök', 0.28, false],
-  ['media_player.g10_4691', 'Sovrum', 0.15, true],
-  ['media_player.badrum', 'Barnrum', 0.55, false],
+  ['media_player.hk_citation_100_l', 'Vardagsrum', 0.42, false],
+  ['media_player.nest_hub', 'Kök', 0.28, false],
+  ['media_player.g10', 'Sovrum', 0.15, true],
+  ['media_player.nest_mini', 'Barnrum', 0.55, false],
   ['media_player.tv', 'TV Vardagsrum', 0.3, true],
 ];
 

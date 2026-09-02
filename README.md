@@ -43,23 +43,23 @@ resource under Settings → Dashboards → Resources.
 type: custom:spotify-media-card
 group_entity: media_player.alla_2            # MA entity of the Google Home group (required)
 speakers:                                    # Google Cast entities (required)
-  - entity: media_player.hk_citation_100_6794f9_2
+  - entity: media_player.hk_citation_100_l
     name: Vardagsrum
-  - entity: media_player.nesthubdacf
+  - entity: media_player.nest_hub
     name: Kök
-  - entity: media_player.g10_4691
+  - entity: media_player.g10
     name: Sovrum
-  - entity: media_player.badrum
+  - entity: media_player.nest_mini
     name: Barnrum
 presets:                                     # optional; speakers not listed are muted
   - name: Focus
-    levels: { media_player.g10_4691: 46 }
+    levels: { media_player.g10: 46 }
   - name: Standard
-    levels: { media_player.hk_citation_100_6794f9_2: 30, media_player.nesthubdacf: 22, media_player.g10_4691: 18 }
+    levels: { media_player.hk_citation_100_l: 30, media_player.nest_hub: 22, media_player.g10: 18 }
   - name: Dinner
-    levels: { media_player.hk_citation_100_6794f9_2: 34, media_player.nesthubdacf: 44 }
+    levels: { media_player.hk_citation_100_l: 34, media_player.nest_hub: 44 }
   - name: Party
-    levels: { media_player.hk_citation_100_6794f9_2: 78, media_player.nesthubdacf: 68, media_player.badrum: 62 }
+    levels: { media_player.hk_citation_100_l: 78, media_player.nest_hub: 68, media_player.nest_mini: 62 }
 default_preset: Standard      # optional; applied when a playlist starts from a cold group
 master_volume: true           # show the "All" row that scales every unmuted speaker
 playlist_layout: tiles        # tiles | list
