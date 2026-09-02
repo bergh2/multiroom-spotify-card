@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { activePreset, deriveNowPlaying, deriveSpeakers, groupSummary } from '../src/state/derive';
+import { activePreset, deriveNowPlaying, deriveSpeakers, groupSummary, isGroupCold, masterVolume, scaleVolumes } from '../src/state/derive';
 import { normalizeConfig } from '../src/config';
 import type { HomeAssistant, Speaker } from '../src/types';
 
@@ -87,6 +87,35 @@ describe('deriveNowPlaying', () => {
     });
     expect(deriveNowPlaying(hass, 'media_player.g')).toMatchObject({ found: true, playing: true, title: 'T', artist: 'A', duration: 214, position: 74, art: '/api/x.jpg' });
     expect(deriveNowPlaying(hass, 'media_player.nope').found).toBe(false);
+  });
+});
+
+describe('masterVolume / scaleVolumes / isGroupCold', () => {
+  const sp = (vols: Array<[number, boolean]>): Speaker[] =>
+    vols.map(([vol, on], i) => ({ entity: `e${i}`, name: `s${i}`, vol, on, available: true, standby: false, notInGroup: false }));
+
+  it('averages the speakers that are on', () => {
+    expect(masterVolume(sp([[40, true], [20, true], [90, false]]))).toBe(30);
+    expect(masterVolume(sp([[40, false]]))).toBeNull();
+  });
+
+  it('scales proportionally and keeps muted speakers untouched', () => {
+    const m = scaleVolumes(sp([[40, true], [20, true], [90, false]]), 60);
+    expect([...m.entries()]).toEqual([['e0', 80], ['e1', 40]]);
+    expect(masterVolume(sp([[80, true], [20, true]]))).toBe(50);
+  });
+
+  it('jumps speakers at zero to the target and clamps at 100', () => {
+    expect([...scaleVolumes(sp([[0, true], [0, true]]), 35).values()]).toEqual([35, 35]);
+    expect([...scaleVolumes(sp([[90, true], [10, true]]), 95).values()]).toEqual([100, 19]);
+  });
+
+  it('treats off/idle/missing group as cold and playing/paused as warm', () => {
+    for (const [state, cold] of [['off', true], ['idle', true], ['playing', false], ['paused', false]] as const) {
+      const hass = hassWith({ 'media_player.g': { state, attributes: {} } });
+      expect(isGroupCold(hass, 'media_player.g')).toBe(cold);
+    }
+    expect(isGroupCold(hassWith({}), 'media_player.g')).toBe(true);
   });
 });
 

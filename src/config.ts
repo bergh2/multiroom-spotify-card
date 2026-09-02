@@ -81,11 +81,18 @@ export function normalizeConfig(raw: CardConfig): NormalizedConfig {
     fail('playlist_sort must be "last_played" or "play_count"');
   }
 
+  const defaultPreset = typeof raw.default_preset === 'string' ? raw.default_preset.trim() : '';
+  if (defaultPreset && !presets.some((p) => p.name === defaultPreset)) {
+    fail(`default_preset "${defaultPreset}" is not one of the presets`);
+  }
+
   return {
     type: raw.type,
     group_entity: raw.group_entity,
     speakers,
     presets,
+    default_preset: defaultPreset,
+    master_volume: raw.master_volume !== false,
     playlist_layout: layout,
     playlist_sort: sort,
     playlist_count: intInRange(raw.playlist_count, 'playlist_count', 1, 50, layout === 'list' ? 10 : 6),

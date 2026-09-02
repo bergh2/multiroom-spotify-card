@@ -56,6 +56,10 @@ export interface CardConfig {
   accent?: string;
   preset_tolerance?: number;
   ma_config_entry_id?: string;
+  /** preset applied when a playlist is started while the group is cold and no speaker was touched */
+  default_preset?: string;
+  /** show the master volume row above the speakers (default true) */
+  master_volume?: boolean;
 }
 
 export interface NormalizedConfig {
@@ -72,6 +76,8 @@ export interface NormalizedConfig {
   accent: string;
   preset_tolerance: number;
   ma_config_entry_id: string;
+  default_preset: string;
+  master_volume: boolean;
 }
 
 export interface Playlist {

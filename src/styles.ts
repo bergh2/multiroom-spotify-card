@@ -353,6 +353,28 @@ export const styles = css`
   .speaker-row.standby .sp-vol {
     color: var(--text3);
   }
+  .speaker-row.master {
+    padding-bottom: 9px;
+    margin-bottom: 4px;
+    border-bottom: 0.5px solid var(--line);
+  }
+  .speaker-row.master .sp-name {
+    font-weight: 620;
+    color: var(--text);
+  }
+  .speaker-row.master .dot {
+    background: var(--chip2);
+    color: var(--text);
+  }
+  .speaker-row.master .track {
+    height: 8px;
+  }
+  .speaker-row.master .fill {
+    background: var(--text2solid);
+  }
+  .speaker-row.master.on .fill {
+    background: var(--accent);
+  }
   .speaker-row.orphan .sp-name {
     text-decoration: underline dotted var(--text3);
     text-underline-offset: 3px;

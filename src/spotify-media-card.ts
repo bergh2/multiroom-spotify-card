@@ -6,7 +6,16 @@ import { styles } from './styles';
 import { icons } from './icons';
 import { normalizeConfig } from './config';
 import type { CardConfig, HomeAssistant, NormalizedConfig, NowPlaying, Playlist, PresetConfig, Speaker } from './types';
-import { activePreset, deriveNowPlaying, deriveSpeakers, fingerprint, groupSummary } from './state/derive';
+import {
+  activePreset,
+  deriveNowPlaying,
+  deriveSpeakers,
+  fingerprint,
+  groupSummary,
+  isGroupCold,
+  masterVolume,
+  scaleVolumes,
+} from './state/derive';
 import { livePosition } from './state/position';
 import { discoverEntryId, getPlaylists } from './ha/library';
 import * as svc from './ha/services';
@@ -187,6 +196,11 @@ export class SpotifyMediaCard extends LitElement {
     if (!hass || !cfg) return;
     this._activeUri = pl.uri;
     this._saveActive(cfg.group_entity, pl.uri);
+    // Fresh start with untouched speakers: apply the default preset first.
+    const preset = cfg.default_preset ? cfg.presets.find((p) => p.name === cfg.default_preset) : undefined;
+    if (preset && isGroupCold(hass, cfg.group_entity) && this._intent.size === 0) {
+      this._applyPreset(this._speakers(hass, cfg, Date.now()), preset);
+    }
     this._run(
       svc.playPlaylist(hass, cfg.group_entity, pl.uri).then(() => {
         if (this._refetchTimer) window.clearTimeout(this._refetchTimer);
@@ -346,6 +360,82 @@ export class SpotifyMediaCard extends LitElement {
     move(e);
   }
 
+  private _masterThrottle?: (v: number) => void;
+
+  private _sendMaster(speakers: Speaker[], target: number): void {
+    const hass = this._hass;
+    if (!hass) return;
+    for (const [entity, vol] of scaleVolumes(speakers, target)) this._sendVolume(entity, vol);
+  }
+
+  private _masterDragStart(e: PointerEvent, speakers: Speaker[]): void {
+    const hass = this._hass;
+    if (!hass) return;
+    // Nothing is on: treat the drag as "play on all" at the chosen level.
+    let base = speakers.filter((s) => s.on && s.available);
+    if (!base.length) {
+      base = speakers.filter((s) => s.available && !s.notInGroup).map((s) => ({ ...s, on: true, vol: 0 }));
+      if (!base.length) return;
+      this._run(svc.setMute(hass, base.map((s) => s.entity), false));
+    }
+    e.preventDefault();
+    const el = e.currentTarget as HTMLElement;
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch {
+      /* not supported */
+    }
+    for (const s of base) this._lastSent.delete(s.entity);
+    if (!this._masterThrottle) {
+      this._masterThrottle = throttle<number>((t) => this._sendMaster(this._masterBase, t), VOLUME_THROTTLE_MS);
+    }
+    this._masterBase = base;
+    const pct = (ev: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      return Math.round(clamp01((ev.clientX - r.left) / r.width) * 100);
+    };
+    const show = (t: number, until: number) => {
+      for (const [entity, vol] of scaleVolumes(base, t)) {
+        this._remember(entity, { vol, on: true });
+        this._overrides.set(entity, { vol, on: true, until });
+      }
+      this.requestUpdate();
+    };
+    const move = (ev: PointerEvent) => {
+      const t = pct(ev);
+      show(t, Infinity);
+      this._masterThrottle!(t);
+    };
+    const up = (ev: PointerEvent) => {
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', up);
+      el.removeEventListener('pointercancel', up);
+      const t = pct(ev);
+      show(t, Date.now() + OVERRIDE_MS);
+      this._sendMaster(base, t);
+      window.setTimeout(() => this.requestUpdate(), OVERRIDE_MS + 50);
+    };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+    move(e);
+  }
+
+  private _masterBase: Speaker[] = [];
+
+  private _renderMaster(speakers: Speaker[]): TemplateResult {
+    const level = masterVolume(speakers);
+    const on = level !== null;
+    return html`<div class=${classMap({ 'speaker-row': true, master: true, on })} title="Master volume: scales every speaker that is on">
+      <span class="dot" role="img" aria-label="Master volume">${icons.volume}</span>
+      <span class="sp-name ellipsis">All</span>
+      <div class="track-hit" @pointerdown=${(e: PointerEvent) => this._masterDragStart(e, speakers)}>
+        <div class="track"><div class="fill" style=${styleMap({ width: `${level ?? 0}%` })}></div></div>
+      </div>
+      <span class="sp-vol">${level ?? '–'}</span>
+    </div>`;
+  }
+
   // ---- transport ---------------------------------------------------------
 
   private _seekStart(e: PointerEvent, np: NowPlaying): void {
@@ -463,7 +553,10 @@ export class SpotifyMediaCard extends LitElement {
               </div>`
             : nothing}
 
-          <div class="speakers">${shown.map((sp) => this._renderSpeaker(sp))}</div>
+          <div class="speakers">
+            ${cfg.master_volume ? this._renderMaster(speakers) : nothing}
+            ${shown.map((sp) => this._renderSpeaker(sp))}
+          </div>
 
           ${this._renderNow(np, active, now)}
           ${this._pickerOpen ? this._renderPicker(speakers) : nothing}

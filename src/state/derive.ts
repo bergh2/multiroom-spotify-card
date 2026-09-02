@@ -83,6 +83,38 @@ export function activePreset(speakers: Speaker[], presets: PresetConfig[], toler
   return null;
 }
 
+/** Master level: average volume of the speakers that are on, or null when none is. */
+export function masterVolume(speakers: Speaker[]): number | null {
+  const on = speakers.filter((s) => s.on);
+  if (!on.length) return null;
+  return Math.round(on.reduce((sum, s) => sum + s.vol, 0) / on.length);
+}
+
+/**
+ * New per-speaker volumes for a master target: every speaker that is on is
+ * scaled proportionally so their average becomes `target` while relative
+ * differences are kept. Speakers at 0 (or when all are 0) jump to the target.
+ */
+export function scaleVolumes(speakers: Speaker[], target: number): Map<string, number> {
+  const out = new Map<string, number>();
+  const on = speakers.filter((s) => s.on);
+  if (!on.length) return out;
+  const avg = on.reduce((sum, s) => sum + s.vol, 0) / on.length;
+  const t = Math.max(0, Math.min(100, target));
+  for (const s of on) {
+    const v = avg > 0 && s.vol > 0 ? (s.vol * t) / avg : t;
+    out.set(s.entity, Math.max(0, Math.min(100, Math.round(v))));
+  }
+  return out;
+}
+
+/** True when the group player is neither playing nor paused, i.e. a fresh start. */
+export function isGroupCold(hass: HomeAssistant, entity: string): boolean {
+  const st = hass.states[entity];
+  if (!st) return true;
+  return !['playing', 'paused', 'buffering', 'on'].includes(st.state);
+}
+
 export function groupSummary(speakers: Speaker[]): string {
   const on = speakers.filter((s) => s.on);
   if (on.length === 0) {

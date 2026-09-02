@@ -18,12 +18,13 @@ const config: CardConfig = {
   ],
   presets: [
     { name: 'Focus', levels: { 'media_player.badrum': 46 } },
-    { name: 'Chill', levels: { 'media_player.hk_citation_100_6794f9_2': 30, 'media_player.nesthubdacf': 22, 'media_player.g10_4691': 18 } },
+    { name: 'Standard', levels: { 'media_player.hk_citation_100_6794f9_2': 30, 'media_player.nesthubdacf': 22, 'media_player.g10_4691': 18 } },
     { name: 'Dinner', levels: { 'media_player.hk_citation_100_6794f9_2': 34, 'media_player.nesthubdacf': 44 } },
     { name: 'Party', levels: { 'media_player.hk_citation_100_6794f9_2': 78, 'media_player.nesthubdacf': 68, 'media_player.badrum': 62 } },
   ],
   playlist_layout: 'tiles',
   speaker_count: 4,
+  default_preset: 'Standard',
 };
 
 const card = document.createElement('spotify-media-card') as SpotifyMediaCard;

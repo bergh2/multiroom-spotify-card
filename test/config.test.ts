@@ -45,6 +45,15 @@ describe('normalizeConfig', () => {
     expect(() => normalizeConfig({ ...base, presets: [{ name: 'X', levels: {} }, { name: 'X', levels: {} }] })).toThrow(/twice/);
   });
 
+  it('validates default_preset and master_volume', () => {
+    const presets = [{ name: 'Standard', levels: { 'media_player.a': 30 } }];
+    expect(normalizeConfig({ ...base, presets, default_preset: 'Standard' }).default_preset).toBe('Standard');
+    expect(normalizeConfig(base).default_preset).toBe('');
+    expect(() => normalizeConfig({ ...base, presets, default_preset: 'Nope' })).toThrow(/default_preset/);
+    expect(normalizeConfig(base).master_volume).toBe(true);
+    expect(normalizeConfig({ ...base, master_volume: false }).master_volume).toBe(false);
+  });
+
   it('rejects bad enums and ranges', () => {
     expect(() => normalizeConfig({ ...base, playlist_layout: 'grid' as never })).toThrow(/playlist_layout/);
     expect(() => normalizeConfig({ ...base, playlist_sort: 'name' as never })).toThrow(/playlist_sort/);

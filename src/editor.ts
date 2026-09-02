@@ -31,6 +31,8 @@ const SCHEMA = [
       { name: 'preset_tolerance', selector: { number: { min: 0, max: 50, mode: 'box' } } },
     ],
   },
+  { name: 'default_preset', selector: { text: {} } },
+  { name: 'master_volume', selector: { boolean: {} } },
   { name: 'title', selector: { text: {} } },
   { name: 'accent', selector: { text: {} } },
   { name: 'ma_config_entry_id', selector: { text: {} } },
@@ -45,6 +47,8 @@ const LABELS: Record<string, string> = {
   tile_columns: 'Tile columns',
   speaker_count: 'Speaker rows to show',
   preset_tolerance: 'Preset match tolerance',
+  default_preset: 'Preset applied on a fresh start (name)',
+  master_volume: 'Show master volume row',
   title: 'Title',
   accent: 'Accent color (CSS)',
   ma_config_entry_id: 'Music Assistant config entry id (optional)',
@@ -99,7 +103,7 @@ export class SpotifyMediaCardEditor extends LitElement {
     const speakers = Array.isArray(c.speakers)
       ? c.speakers.map((s) => (typeof s === 'string' ? s : s?.entity)).filter(Boolean)
       : [];
-    return { ...c, speakers };
+    return { ...c, speakers, master_volume: c.master_volume !== false };
   }
 
   private _valueChanged(ev: CustomEvent<{ value: Record<string, unknown> }>): void {

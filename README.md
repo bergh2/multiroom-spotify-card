@@ -54,12 +54,14 @@ speakers:                                    # Google Cast entities (required)
 presets:                                     # optional; speakers not listed are muted
   - name: Focus
     levels: { media_player.g10_4691: 46 }
-  - name: Chill
+  - name: Standard
     levels: { media_player.hk_citation_100_6794f9_2: 30, media_player.nesthubdacf: 22, media_player.g10_4691: 18 }
   - name: Dinner
     levels: { media_player.hk_citation_100_6794f9_2: 34, media_player.nesthubdacf: 44 }
   - name: Party
     levels: { media_player.hk_citation_100_6794f9_2: 78, media_player.nesthubdacf: 68, media_player.badrum: 62 }
+default_preset: Standard      # optional; applied when a playlist starts from a cold group
+master_volume: true           # show the "All" row that scales every unmuted speaker
 playlist_layout: tiles        # tiles | list
 playlist_sort: last_played    # last_played | play_count
 playlist_count: 6             # 1..50 (default 6 for tiles, 10 for list)
@@ -76,6 +78,8 @@ ma_config_entry_id: ""        # optional; auto-discovered when empty
 | `group_entity` | Music Assistant player for the Cast group. Playback, transport and now-playing use this entity. |
 | `speakers` | Google Cast entities, as strings or `{entity, name}`. Order is the display order. |
 | `presets` | List of `{name, levels}`. `levels` maps entity → volume 0–100; omitted speakers are muted. |
+| `default_preset` | Name of a preset applied automatically when you tap a playlist while the group is cold (not playing or paused) and no speaker has been touched since it went idle. Pause/resume and preset taps are never overridden. |
+| `master_volume` | Shows an "All" row above the speakers. Its level is the average of the unmuted speakers; dragging it scales each of them proportionally. With everything muted, dragging unmutes all speakers at that level. |
 | `playlist_layout` | `tiles` (grid) or `list` (dense rows). |
 | `playlist_sort` | `last_played` or `play_count`, as tracked by Music Assistant. |
 | `playlist_count` | Number of playlists fetched and shown. |
