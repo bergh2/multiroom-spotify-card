@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  html, body { margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { -webkit-font-smoothing: antialiased; }
+  a { color: #8b7cf0; text-decoration: none; }
+  a:hover { color: #a99bff; }
+  @keyframes eq { 0%,100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
+  @keyframes sheetUp { from { transform: translateY(18px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
+</helmet>
+<div style="{{ themeVars }}" data-screen-label="Media card">
+<div style="min-height: 100vh; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 22px; background: var(--page, #08080a); font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', Helvetica, sans-serif; transition: background .35s ease;">
+
+  <div style="display: flex; align-items: center; gap: 10px; padding: 4px 6px 4px 14px; border-radius: 999px; background: var(--chip, rgba(255,255,255,0.06)); border: 0.5px solid var(--line, rgba(255,255,255,0.1));">
+    <span style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text2, rgba(235,235,245,0.5));">Appearance</span>
+    <button onClick="{{ toggleTheme }}" style="border: none; cursor: pointer; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 590; font-family: inherit; background: var(--chip2, rgba(255,255,255,0.12)); color: var(--text, #f5f5f7);">{{ themeLabel }}</button>
+    <span style="width: 0.5px; height: 16px; background: var(--line, rgba(255,255,255,0.1));"></span>
+    <span style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text2, rgba(235,235,245,0.5));">Playlists</span>
+    <button onClick="{{ setTiles }}" style="border: none; cursor: pointer; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 590; font-family: inherit; background: {{ tilesBg }}; color: {{ tilesFg }};">Tiles</button>
+    <button onClick="{{ setList }}" style="border: none; cursor: pointer; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 590; font-family: inherit; background: {{ listBg }}; color: {{ listFg }};">List</button>
+  </div>
+
+  <div style="position: relative; width: 340px; border-radius: 26px; padding: 16px 14px 14px; background: var(--card, rgba(24,24,27,0.86)); border: 0.5px solid var(--line, rgba(255,255,255,0.1)); box-shadow: 0 30px 70px -20px rgba(0,0,0,0.65), 0 1px 0 0 var(--hairline, rgba(255,255,255,0.06)) inset; backdrop-filter: blur(30px) saturate(160%); overflow: hidden; transition: background .35s ease, border-color .35s ease;">
+
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+      <div style="display: flex; flex-direction: column; gap: 1px;">
+        <span style="font-size: 15px; font-weight: 640; letter-spacing: -0.01em; color: var(--text, #f5f5f7);">Listening</span>
+        <span style="font-size: 11.5px; color: var(--text2, rgba(235,235,245,0.5));">{{ groupSummary }}</span>
+      </div>
+      <button onClick="{{ togglePicker }}" title="Choose speakers" style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 6px 10px 6px 8px; border-radius: 999px; border: 0.5px solid var(--line, rgba(255,255,255,0.1)); background: var(--chip, rgba(255,255,255,0.06)); color: var(--text, #f5f5f7); font-family: inherit; font-size: 12px; font-weight: 560;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 15a9 9 0 0 1 16 0"></path><path d="M12 15l4 6H8l4-6z" fill="currentColor" stroke="none"></path></svg>
+        <span>{{ deviceCount }}</span>
+      </button>
+    </div>
+
+    <sc-if value="{{ isList }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; flex-direction: column; margin: 0 -4px 14px; ">
+      <sc-for list="{{ playlists }}" as="pl" hint-placeholder-count="6">
+        <button onClick="{{ pl.select }}" style="display: flex; align-items: center; gap: 9px; padding: 4px 4px; border: none; border-top: 0.5px solid {{ pl.rowLine }}; background: none; cursor: pointer; text-align: left; font-family: inherit;" style-hover="background: var(--chip, rgba(255,255,255,0.05));">
+          <div style="position: relative; flex: 0 0 auto; width: 24px; height: 24px; border-radius: 6px; overflow: hidden; background: var(--art, #232326); border: 0.5px solid var(--line, rgba(255,255,255,0.1));">
+            <div style="position: absolute; inset: 0; background-image: repeating-linear-gradient(135deg, var(--stripe, rgba(255,255,255,0.07)) 0 3px, transparent 3px 8px);"></div>
+          </div>
+          <span style="flex: 1 1 auto; min-width: 0; font-size: 12.5px; font-weight: 540; letter-spacing: -0.01em; color: {{ pl.rowFg }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ pl.name }}</span>
+          <span style="flex: 0 0 auto; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 9.5px; color: var(--text3, rgba(235,235,245,0.35));">{{ pl.meta }}</span>
+          <span style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 12px; color: {{ pl.rowFg }}; opacity: {{ pl.iconOpacity }};">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5 19.5 12 7 19.5z"></path></svg>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isTiles }}" hint-placeholder-val="{{ true }}">
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 18px;">
+      <sc-for list="{{ playlists }}" as="pl" hint-placeholder-count="6">
+        <button onClick="{{ pl.select }}" style="display: flex; flex-direction: column; gap: 6px; padding: 0; border: none; background: none; cursor: pointer; text-align: left; font-family: inherit;">
+          <div style="position: relative; width: 100%; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--art, #232326); border: 0.5px solid var(--line, rgba(255,255,255,0.1)); box-shadow: 0 6px 14px -8px rgba(0,0,0,0.7);">
+            <div style="position: absolute; inset: 0; background-image: repeating-linear-gradient(135deg, var(--stripe, rgba(255,255,255,0.07)) 0 3px, transparent 3px 8px);"></div>
+            <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 7.5px; letter-spacing: 0.04em; color: var(--text3, rgba(235,235,245,0.35));">{{ pl.slug }}</div>
+            <div style="position: absolute; inset: 0; border-radius: 12px; box-shadow: 0 0 0 2px var(--accent, oklch(0.62 0.16 285)) inset; opacity: {{ pl.activeOpacity }};"></div>
+          </div>
+          <span style="font-size: 11px; font-weight: 560; line-height: 1.25; color: var(--text, #f5f5f7); overflow: hidden; display: block; text-overflow: ellipsis; white-space: nowrap;">{{ pl.name }}</span>
+        </button>
+      </sc-for>
+    </div>
+    </sc-if>
+
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px;">
+      <span style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text2, rgba(235,235,245,0.5));">Speakers</span>
+      <button onClick="{{ toggleMuteAll }}" style="border: none; background: none; padding: 0; cursor: pointer; font-family: inherit; font-size: 11.5px; font-weight: 560; color: var(--accent, oklch(0.62 0.16 285));">{{ muteLabel }}</button>
+    </div>
+
+    <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+      <sc-for list="{{ presets }}" as="ps" hint-placeholder-count="4">
+        <button onClick="{{ ps.apply }}" style="flex: 1 1 0; min-width: 0; padding: 7px 4px; border-radius: 10px; cursor: pointer; font-family: inherit; font-size: 11.5px; font-weight: 560; letter-spacing: -0.005em; border: 0.5px solid {{ ps.border }}; background: {{ ps.bg }}; color: {{ ps.fg }}; transition: background .18s ease, color .18s ease;">{{ ps.name }}</button>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 2px; margin-bottom: 16px;">
+      <sc-for list="{{ speakers }}" as="sp" hint-placeholder-count="4">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 2px;">
+          <button onClick="{{ sp.toggle }}" title="Toggle speaker" style="flex: 0 0 auto; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 7px; cursor: pointer; border: 0.5px solid var(--line, rgba(255,255,255,0.1)); background: {{ sp.dotBg }}; color: {{ sp.dotFg }};">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2.5" width="14" height="19" rx="3.5"></rect><circle cx="12" cy="15" r="3.2"></circle><circle cx="12" cy="7.5" r="1.1" fill="currentColor"></circle></svg>
+          </button>
+          <div style="flex: 0 0 74px; display: flex; flex-direction: column; gap: 0px; min-width: 0;">
+            <span style="font-size: 12.5px; font-weight: 540; letter-spacing: -0.01em; color: {{ sp.nameColor }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ sp.name }}</span>
+          </div>
+          <div onPointerDown="{{ sp.drag }}" style="position: relative; flex: 1 1 auto; height: 26px; display: flex; align-items: center; cursor: pointer; touch-action: none;">
+            <div style="position: relative; width: 100%; height: 6px; border-radius: 999px; background: var(--track, rgba(255,255,255,0.12)); overflow: hidden;">
+              <div style="position: absolute; inset: 0 auto 0 0; width: {{ sp.pct }}; border-radius: 999px; background: {{ sp.fill }}; transition: width .12s linear;"></div>
+            </div>
+          </div>
+          <span style="flex: 0 0 26px; text-align: right; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 10.5px; color: var(--text2, rgba(235,235,245,0.5));">{{ sp.vol }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="border-radius: 18px; padding: 11px 12px 12px; background: var(--bar, rgba(255,255,255,0.05)); border: 0.5px solid var(--line, rgba(255,255,255,0.1));">
+      <div style="display: flex; align-items: center; gap: 11px;">
+        <div style="position: relative; flex: 0 0 auto; width: 44px; height: 44px; border-radius: 10px; overflow: hidden; background: var(--art, #232326); border: 0.5px solid var(--line, rgba(255,255,255,0.1));">
+          <div style="position: absolute; inset: 0; background-image: repeating-linear-gradient(135deg, var(--stripe, rgba(255,255,255,0.07)) 0 3px, transparent 3px 8px);"></div>
+          <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 6px; color: var(--text3, rgba(235,235,245,0.35));">ART</div>
+        </div>
+        <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="flex: 0 0 auto; display: flex; align-items: flex-end; gap: 1.5px; height: 9px; opacity: {{ eqOpacity }};">
+              <div style="width: 2px; height: 100%; border-radius: 1px; background: var(--accent, oklch(0.62 0.16 285)); animation: eq .9s ease-in-out infinite; transform-origin: bottom;"></div>
+              <div style="width: 2px; height: 100%; border-radius: 1px; background: var(--accent, oklch(0.62 0.16 285)); animation: eq .9s ease-in-out infinite .3s; transform-origin: bottom;"></div>
+              <div style="width: 2px; height: 100%; border-radius: 1px; background: var(--accent, oklch(0.62 0.16 285)); animation: eq .9s ease-in-out infinite .6s; transform-origin: bottom;"></div>
+            </div>
+            <span style="font-size: 13px; font-weight: 600; letter-spacing: -0.01em; color: var(--text, #f5f5f7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ trackTitle }}</span>
+          </div>
+          <span style="font-size: 11.5px; color: var(--text2, rgba(235,235,245,0.5)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ trackArtist }}</span>
+        </div>
+        <div style="flex: 0 0 auto; display: flex; align-items: center; gap: 4px;">
+          <button onClick="{{ prev }}" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; color: var(--text, #f5f5f7); border-radius: 8px;" style-hover="background: var(--chip, rgba(255,255,255,0.08));">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.2v14H6z"></path><path d="M19 5.6v12.8L9.6 12z"></path></svg>
+          </button>
+          <button onClick="{{ togglePlay }}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; border-radius: 999px; background: var(--text, #f5f5f7); color: var(--onText, #101013);">
+            <span style="display: {{ playDisplay }};">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 2px;"><path d="M7 4.5 19.5 12 7 19.5z"></path></svg>
+            </span>
+            <span style="display: {{ pauseDisplay }};">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4.2" height="15" rx="1.2"></rect><rect x="13.8" y="4.5" width="4.2" height="15" rx="1.2"></rect></svg>
+            </span>
+          </button>
+          <button onClick="{{ next }}" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; color: var(--text, #f5f5f7); border-radius: 8px;" style-hover="background: var(--chip, rgba(255,255,255,0.08));">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M15.8 5H18v14h-2.2z"></path><path d="M5 5.6 14.4 12 5 18.4z"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <div onPointerDown="{{ seek }}" style="margin-top: 10px; cursor: pointer; touch-action: none;">
+        <div style="position: relative; height: 4px; border-radius: 999px; background: var(--track, rgba(255,255,255,0.12)); overflow: hidden;">
+          <div style="position: absolute; inset: 0 auto 0 0; width: {{ progressPct }}; background: var(--text2solid, rgba(235,235,245,0.62)); border-radius: 999px;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+          <span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 10px; color: var(--text3, rgba(235,235,245,0.35));">{{ elapsed }}</span>
+          <span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 10px; color: var(--text3, rgba(235,235,245,0.35));">{{ remaining }}</span>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{ pickerOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position: absolute; inset: 0; border-radius: 26px; background: var(--scrim, rgba(8,8,10,0.55)); backdrop-filter: blur(14px); display: flex; flex-direction: column; justify-content: flex-end; padding: 12px;">
+        <div style="border-radius: 20px; overflow: hidden; background: var(--sheet, rgba(44,44,48,0.92)); border: 0.5px solid var(--line, rgba(255,255,255,0.12)); animation: sheetUp .22s cubic-bezier(0.22,1,0.36,1);">
+          <div style="padding: 12px 14px 8px; display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 13px; font-weight: 620; color: var(--text, #f5f5f7);">Play on</span>
+            <button onClick="{{ togglePicker }}" style="border: none; background: none; padding: 0; cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 560; color: var(--accent, oklch(0.62 0.16 285));">Done</button>
+          </div>
+          <div style="display: flex; flex-direction: column;">
+            <sc-for list="{{ speakers }}" as="sp" hint-placeholder-count="4">
+              <button onClick="{{ sp.toggle }}" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: none; border-top: 0.5px solid var(--line, rgba(255,255,255,0.08)); background: none; cursor: pointer; font-family: inherit; text-align: left;">
+                <span style="flex: 0 0 auto; width: 17px; height: 17px; border-radius: 999px; display: flex; align-items: center; justify-content: center; border: 1.2px solid {{ sp.checkBorder }}; background: {{ sp.checkBg }};">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--onText, #101013)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" style="opacity: {{ sp.activeOpacity }};"><path d="M5 13l4.5 4.5L19 7"></path></svg>
+                </span>
+                <span style="flex: 1 1 auto; font-size: 13px; font-weight: 540; color: var(--text, #f5f5f7);">{{ sp.name }}</span>
+                <span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 10.5px; color: var(--text2, rgba(235,235,245,0.5));">{{ sp.kind }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+
+  <span style="font-size: 11px; color: var(--text3, rgba(235,235,245,0.35)); font-family: ui-monospace, 'SF Mono', Menlo, monospace;">media_player · 6 recent playlists · multi-room</span>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:760}}">
+const DARK = {
+  '--page': '#08080a', '--card': 'rgba(24,24,27,0.86)', '--chip': 'rgba(255,255,255,0.06)',
+  '--chip2': 'rgba(255,255,255,0.12)', '--line': 'rgba(255,255,255,0.10)', '--hairline': 'rgba(255,255,255,0.06)',
+  '--text': '#f5f5f7', '--text2': 'rgba(235,235,245,0.52)', '--text2solid': 'rgba(235,235,245,0.62)',
+  '--text3': 'rgba(235,235,245,0.34)', '--art': '#232326', '--stripe': 'rgba(255,255,255,0.07)',
+  '--track': 'rgba(255,255,255,0.13)', '--bar': 'rgba(255,255,255,0.05)', '--sheet': 'rgba(44,44,48,0.92)',
+  '--scrim': 'rgba(8,8,10,0.55)', '--onText': '#101013'
+};
+const LIGHT = {
+  '--page': '#f2f2f5', '--card': 'rgba(255,255,255,0.86)', '--chip': 'rgba(10,10,14,0.05)',
+  '--chip2': 'rgba(10,10,14,0.09)', '--line': 'rgba(10,10,14,0.10)', '--hairline': 'rgba(255,255,255,0.9)',
+  '--text': '#111114', '--text2': 'rgba(30,30,36,0.55)', '--text2solid': 'rgba(30,30,36,0.6)',
+  '--text3': 'rgba(30,30,36,0.38)', '--art': '#e6e6ea', '--stripe': 'rgba(10,10,14,0.08)',
+  '--track': 'rgba(10,10,14,0.11)', '--bar': 'rgba(10,10,14,0.035)', '--sheet': 'rgba(250,250,252,0.94)',
+  '--scrim': 'rgba(240,240,244,0.6)', '--onText': '#ffffff'
+};
+
+// levels indexed to state.speakers: Living Room, Kitchen, Bedroom, Office
+const PRESETS = [
+  { name: 'Focus', levels: [0, 0, 0, 46] },
+  { name: 'Chill', levels: [30, 22, 18, 0] },
+  { name: 'Dinner', levels: [34, 44, 0, 0] },
+  { name: 'Party', levels: [78, 68, 0, 62] }
+];
+
+class Component extends DCLogic {
+  state = {
+    theme: 'dark',
+    playing: true,
+    pickerOpen: false,
+    activePlaylist: 0,
+    playlistStyle: 'tiles',
+    preset: null,
+    pos: 74,
+    speakers: [
+      { name: 'Living Room', kind: 'sonos', vol: 42, on: true },
+      { name: 'Kitchen', kind: 'homepod', vol: 28, on: true },
+      { name: 'Bedroom', kind: 'homepod', vol: 15, on: false },
+      { name: 'Office', kind: 'echo', vol: 55, on: true }
+    ]
+  };
+
+  componentDidMount() {
+    this.timer = setInterval(() => {
+      if (this.state.playing) this.setState(s => ({ pos: (s.pos + 1) % 214 }));
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+
+  fmt(s) {
+    const m = Math.floor(s / 60), r = Math.floor(s % 60);
+    return m + ':' + String(r).padStart(2, '0');
+  }
+
+  dragVol(i) {
+    return e => {
+      const track = e.currentTarget;
+      const move = ev => {
+        const r = track.getBoundingClientRect();
+        const pct = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width));
+        this.setState(s => {
+          const sp = s.speakers.slice();
+          sp[i] = Object.assign({}, sp[i], { vol: Math.round(pct * 100), on: true });
+          return { speakers: sp, preset: null };
+        });
+      };
+      move(e);
+      const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+    };
+  }
+
+  renderVals() {
+    const t = this.state.theme === 'dark' ? DARK : LIGHT;
+    const accent = 'oklch(0.62 0.16 285)';
+    const themeVars = Object.keys(t).map(k => k + ':' + t[k]).join(';') + ';--accent:' + accent + ';';
+    const tileNames = ['Morning Coffee', 'Deep Focus', 'Late Drive', 'Kitchen Disco', 'Sunday Slow', 'Discover Weekly'];
+    const listExtra = ['Release Radar', 'Dinner Jazz', 'Running Hard', 'Ambient Sleep'];
+    const names = this.state.playlistStyle === 'list' ? tileNames.concat(listExtra) : tileNames;
+    const metas = ['yesterday', '2d ago', 'Friday', 'Sunday', 'last week', 'Monday', 'Monday', '3d ago', 'Tuesday', 'last week'];
+    const slugs = names.map((n, i) => 'ART ' + String(i + 1).padStart(2, '0'));
+    const on = this.state.speakers.filter(s => s.on);
+    const total = 214;
+
+    return {
+      themeVars,
+      themeLabel: this.state.theme === 'dark' ? 'Dark' : 'Light',
+      toggleTheme: () => this.setState(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
+      pickerOpen: this.state.pickerOpen,
+      togglePicker: () => this.setState(s => ({ pickerOpen: !s.pickerOpen })),
+      deviceCount: String(on.length),
+      groupSummary: on.length === 0 ? 'No speakers selected'
+        : on.length === 1 ? on[0].name
+        : on[0].name + ' + ' + (on.length - 1) + ' more',
+      isTiles: this.state.playlistStyle === 'tiles',
+      isList: this.state.playlistStyle === 'list',
+      setTiles: () => this.setState({ playlistStyle: 'tiles' }),
+      setList: () => this.setState({ playlistStyle: 'list' }),
+      tilesBg: this.state.playlistStyle === 'tiles' ? 'var(--chip2)' : 'transparent',
+      tilesFg: this.state.playlistStyle === 'tiles' ? 'var(--text)' : 'var(--text2)',
+      listBg: this.state.playlistStyle === 'list' ? 'var(--chip2)' : 'transparent',
+      listFg: this.state.playlistStyle === 'list' ? 'var(--text)' : 'var(--text2)',
+      playlists: names.map((n, i) => {
+        const active = this.state.activePlaylist === i;
+        return {
+          name: n, slug: slugs[i], meta: metas[i],
+          activeOpacity: active ? 1 : 0,
+          iconOpacity: active ? 1 : 0,
+          rowFg: active ? accent : 'var(--text)',
+          rowLine: i === 0 ? 'transparent' : 'var(--line)',
+          select: () => this.setState({ activePlaylist: i, playing: true, pos: 0 })
+        };
+      }),
+      speakers: this.state.speakers.map((sp, i) => ({
+        name: sp.name, kind: sp.kind, vol: String(sp.vol),
+        pct: (sp.on ? sp.vol : 0) + '%',
+        fill: sp.on ? accent : 'var(--text3)',
+        dotBg: sp.on ? accent : 'var(--chip)',
+        dotFg: sp.on ? '#fff' : 'var(--text2)',
+        nameColor: sp.on ? 'var(--text)' : 'var(--text2)',
+        checkBorder: sp.on ? accent : 'var(--line)',
+        checkBg: sp.on ? accent : 'transparent',
+        activeOpacity: sp.on ? 1 : 0,
+        toggle: () => this.setState(s => {
+          const arr = s.speakers.slice();
+          arr[i] = Object.assign({}, arr[i], { on: !arr[i].on });
+          return { speakers: arr, preset: null };
+        }),
+        drag: this.dragVol(i)
+      })),
+      presets: PRESETS.map(p => {
+        const active = this.state.preset === p.name;
+        return {
+          name: p.name,
+          bg: active ? accent : 'var(--chip)',
+          fg: active ? '#fff' : 'var(--text)',
+          border: active ? 'transparent' : 'var(--line)',
+          apply: () => this.setState(s => ({
+            preset: p.name,
+            speakers: s.speakers.map((sp, i) => Object.assign({}, sp, { vol: p.levels[i], on: p.levels[i] > 0 }))
+          }))
+        };
+      }),
+      muteLabel: on.length ? 'Mute all' : 'Play on all',
+      toggleMuteAll: () => this.setState(s => ({
+        preset: null,
+        speakers: s.speakers.map(x => Object.assign({}, x, { on: !on.length }))
+      })),
+      trackTitle: 'Weightless',
+      trackArtist: 'Marconi Union · ' + (names[this.state.activePlaylist] || names[0]),
+      playing: this.state.playing,
+      togglePlay: () => this.setState(s => ({ playing: !s.playing })),
+      playDisplay: this.state.playing ? 'none' : 'flex',
+      pauseDisplay: this.state.playing ? 'flex' : 'none',
+      eqOpacity: this.state.playing ? 1 : 0.25,
+      prev: () => this.setState({ pos: 0 }),
+      next: () => this.setState(s => ({ activePlaylist: (s.activePlaylist + 1) % names.length, pos: 0 })),
+      progressPct: ((this.state.pos / total) * 100).toFixed(1) + '%',
+      elapsed: this.fmt(this.state.pos),
+      remaining: '-' + this.fmt(total - this.state.pos),
+      seek: e => {
+        const r = e.currentTarget.getBoundingClientRect();
+        this.setState({ pos: Math.round(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * total) });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
