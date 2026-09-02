@@ -353,6 +353,13 @@ export const styles = css`
   .speaker-row.standby .sp-vol {
     color: var(--text3);
   }
+  .speaker-row.orphan .sp-name {
+    text-decoration: underline dotted var(--text3);
+    text-underline-offset: 3px;
+  }
+  .speaker-row.orphan .sp-vol {
+    font-size: 9px;
+  }
   .dot {
     flex: 0 0 auto;
     width: 22px;

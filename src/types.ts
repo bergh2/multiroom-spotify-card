@@ -90,6 +90,8 @@ export interface Speaker {
   available: boolean;
   /** entity is off/idle and reports no volume (Cast strips attributes while off) */
   standby: boolean;
+  /** the group is playing but this speaker stays off: it is not a member of the Cast group */
+  notInGroup: boolean;
 }
 
 export interface NowPlaying {

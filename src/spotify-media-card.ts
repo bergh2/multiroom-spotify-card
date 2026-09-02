@@ -237,14 +237,16 @@ export class SpotifyMediaCard extends LitElement {
   private _speakers(hass: HomeAssistant, cfg: NormalizedConfig, now: number): Speaker[] {
     return deriveSpeakers(hass, cfg).map((base) => {
       let sp = base;
-      if (sp.standby) {
+      if (sp.notInGroup) {
+        // keep the warning visible; local intent would only hide the problem
+      } else if (sp.standby) {
         const intent = this._intent.get(sp.entity);
         if (intent) sp = { ...sp, standby: false, vol: intent.vol ?? 0, on: intent.on ?? true };
       } else {
         this._intent.delete(sp.entity);
       }
       const o = this._overrides.get(sp.entity);
-      if (!o) return sp;
+      if (!o || sp.notInGroup) return sp;
       if (now >= o.until) {
         this._overrides.delete(sp.entity);
         return sp;
@@ -557,15 +559,19 @@ export class SpotifyMediaCard extends LitElement {
   }
 
   private _renderSpeaker(sp: Speaker): TemplateResult {
-    return html`<div class=${classMap({ 'speaker-row': true, on: sp.on, unavailable: !sp.available, standby: sp.standby })}>
-      <button class="dot" title=${sp.available ? 'Toggle speaker' : 'Unavailable'} ?disabled=${!sp.available} @click=${() => this._toggle(sp)}>
+    const hint = !sp.available ? 'Unavailable' : sp.notInGroup ? 'Not in the Cast group: add it in the Google Home app' : sp.standby ? 'Idle' : 'Toggle speaker';
+    return html`<div
+      class=${classMap({ 'speaker-row': true, on: sp.on, unavailable: !sp.available, standby: sp.standby, orphan: sp.notInGroup })}
+      title=${hint}
+    >
+      <button class="dot" title=${hint} ?disabled=${!sp.available} @click=${() => this._toggle(sp)}>
         ${icons.speaker}
       </button>
       <span class="sp-name ellipsis">${sp.name}</span>
       <div class="track-hit" @pointerdown=${(e: PointerEvent) => this._dragStart(e, sp)}>
         <div class="track"><div class="fill" style=${styleMap({ width: `${sp.on ? sp.vol : 0}%` })}></div></div>
       </div>
-      <span class="sp-vol">${sp.standby ? '–' : sp.vol}</span>
+      <span class="sp-vol">${sp.notInGroup ? 'n/a' : sp.standby ? '–' : sp.vol}</span>
     </div>`;
   }
 
@@ -618,7 +624,7 @@ export class SpotifyMediaCard extends LitElement {
             (sp) => html`<button class=${classMap({ 'sheet-row': true, on: sp.on })} ?disabled=${!sp.available} @click=${() => this._toggle(sp)}>
               <span class="check">${icons.check}</span>
               <span class="sheet-name ellipsis">${sp.name}</span>
-              <span class="sheet-kind">${!sp.available ? 'offline' : sp.standby ? 'idle' : sp.on ? `${sp.vol}` : 'muted'}</span>
+              <span class="sheet-kind">${!sp.available ? 'offline' : sp.notInGroup ? 'not in group' : sp.standby ? 'idle' : sp.on ? `${sp.vol}` : 'muted'}</span>
             </button>`,
           )}
         </div>

@@ -3,6 +3,7 @@ import type { HomeAssistant, NormalizedConfig, NowPlaying, PresetConfig, Speaker
 const UNAVAILABLE = new Set(['unavailable', 'unknown']);
 
 export function deriveSpeakers(hass: HomeAssistant, cfg: NormalizedConfig): Speaker[] {
+  const groupPlaying = hass.states[cfg.group_entity]?.state === 'playing';
   return cfg.speakers.map((s) => {
     const st = hass.states[s.entity];
     const attrs = st?.attributes ?? {};
@@ -19,6 +20,7 @@ export function deriveSpeakers(hass: HomeAssistant, cfg: NormalizedConfig): Spea
       on: available && !standby && !muted,
       available,
       standby,
+      notInGroup: groupPlaying && standby,
     };
   });
 }

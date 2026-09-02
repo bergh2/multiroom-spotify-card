@@ -49,9 +49,9 @@ describe('deriveSpeakers', () => {
 
 describe('activePreset', () => {
   const mk = (a: [number, boolean], b: [number, boolean], c: [number, boolean], cAvail = true): Speaker[] => [
-    { entity: 'media_player.a', name: 'a', vol: a[0], on: a[1], available: true, standby: false },
-    { entity: 'media_player.b', name: 'b', vol: b[0], on: b[1], available: true, standby: false },
-    { entity: 'media_player.c', name: 'c', vol: c[0], on: c[1] && cAvail, available: cAvail, standby: false },
+    { entity: 'media_player.a', name: 'a', vol: a[0], on: a[1], available: true, standby: false, notInGroup: false },
+    { entity: 'media_player.b', name: 'b', vol: b[0], on: b[1], available: true, standby: false, notInGroup: false },
+    { entity: 'media_player.c', name: 'c', vol: c[0], on: c[1] && cAvail, available: cAvail, standby: false, notInGroup: false },
   ];
   it('matches within tolerance and requires others muted', () => {
     expect(activePreset(mk([31, true], [20, true], [50, false]), cfg.presets, 3)).toBe('Chill');
@@ -69,7 +69,7 @@ describe('activePreset', () => {
 
 describe('groupSummary', () => {
   const sp = (on: boolean[], names = ['Living Room', 'Kitchen', 'Bedroom']): Speaker[] =>
-    on.map((o, i) => ({ entity: `e${i}`, name: names[i], vol: 10, on: o, available: true, standby: false }));
+    on.map((o, i) => ({ entity: `e${i}`, name: names[i], vol: 10, on: o, available: true, standby: false, notInGroup: false }));
   it('formats the three cases', () => {
     expect(groupSummary(sp([false, false, false]))).toBe('No speakers selected');
     expect(groupSummary(sp([false, true, false]))).toBe('Kitchen');
@@ -87,5 +87,20 @@ describe('deriveNowPlaying', () => {
     });
     expect(deriveNowPlaying(hass, 'media_player.g')).toMatchObject({ found: true, playing: true, title: 'T', artist: 'A', duration: 214, position: 74, art: '/api/x.jpg' });
     expect(deriveNowPlaying(hass, 'media_player.nope').found).toBe(false);
+  });
+});
+
+describe('notInGroup', () => {
+  it('flags speakers that stay off while the group entity is playing', () => {
+    const hass = hassWith({
+      'media_player.g': { state: 'playing', attributes: {} },
+      'media_player.a': { state: 'playing', attributes: { volume_level: 0.35, is_volume_muted: false } },
+      'media_player.b': { state: 'off', attributes: {} },
+      'media_player.c': { state: 'unavailable', attributes: {} },
+    });
+    const sp = deriveSpeakers(hass, cfg);
+    expect(sp[0].notInGroup).toBe(false);
+    expect(sp[1]).toMatchObject({ standby: true, notInGroup: true });
+    expect(sp[2].notInGroup).toBe(false);
   });
 });
