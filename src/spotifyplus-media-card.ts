@@ -9,6 +9,7 @@ import * as sp from './spotifyplus/services';
 import {
   EMPTY_HISTORY,
   applyMeta,
+  fillWithFavorites,
   isHistoryStore,
   mergeRecent,
   missingMeta,
@@ -50,7 +51,7 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
   @state() private _activeUri: string | null = null;
   @state() private _starting: Starting | null = null;
 
-  private _favorites: sp.PlaylistMeta[] = [];
+  @state() private _favorites: sp.PlaylistMeta[] = [];
   private _favoritesAt = 0;
   private _refreshing = false;
   private _refreshTimer?: number;
@@ -137,7 +138,14 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
   private get _playlists(): Playlist[] {
     const cfg = this._config;
     if (!cfg) return [];
-    return sortedPlaylists(this._history, cfg.playlist_sort, cfg.playlist_count);
+    const played = sortedPlaylists(this._history, cfg.playlist_sort, cfg.playlist_count);
+    return cfg.fill_with_favorites ? fillWithFavorites(played, this._favorites, cfg.playlist_count) : played;
+  }
+
+  private async _ensureFavorites(hass: HomeAssistant, cfg: SpNormalizedConfig): Promise<void> {
+    if (Date.now() - this._favoritesAt < FAVORITES_TTL_MS) return;
+    this._favorites = await sp.getPlaylistFavorites(hass, cfg.spotifyplus_entity, 50);
+    this._favoritesAt = Date.now();
   }
 
   private async _refresh(): Promise<void> {
@@ -155,6 +163,7 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
       const before = this._history;
       const recent = await sp.getRecentTracks(hass, cfg.spotifyplus_entity, before.lastSeen);
       let store = mergeRecent(before, recent);
+      if (cfg.fill_with_favorites) await this._ensureFavorites(hass, cfg);
       store = await this._fillMeta(hass, cfg, store);
       store = prune(store);
       this._history = store;
@@ -173,10 +182,7 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
   private async _fillMeta(hass: HomeAssistant, cfg: SpNormalizedConfig, store: HistoryStore): Promise<HistoryStore> {
     let missing = missingMeta(store);
     if (!missing.length) return store;
-    if (Date.now() - this._favoritesAt > FAVORITES_TTL_MS) {
-      this._favorites = await sp.getPlaylistFavorites(hass, cfg.spotifyplus_entity, 50);
-      this._favoritesAt = Date.now();
-    }
+    await this._ensureFavorites(hass, cfg);
     store = applyMeta(store, this._favorites);
     missing = missingMeta(store);
     const found: sp.PlaylistMeta[] = [];

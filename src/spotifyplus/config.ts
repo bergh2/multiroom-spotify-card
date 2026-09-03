@@ -26,6 +26,8 @@ export interface SpCardConfig {
   preset_tolerance?: number;
   /** key of the shared play history in HA user data */
   history_key?: string;
+  /** top up the grid with the user's own playlists until playlist_count is reached (default true) */
+  fill_with_favorites?: boolean;
   title?: string;
   accent?: string;
 }
@@ -42,6 +44,7 @@ export interface SpNormalizedConfig extends SpeakerSectionConfig {
   playlist_count: number;
   tile_columns: number;
   history_key: string;
+  fill_with_favorites: boolean;
   title: string;
   accent: string;
 }
@@ -69,6 +72,7 @@ export function normalizeSpConfig(raw: SpCardConfig): SpNormalizedConfig {
     ...normalizeSpeakerSection(CARD, raw),
     ...normalizePlaylistView(CARD, raw),
     history_key: normalizeText(raw.history_key, 'spotifyplus-media-card'),
+    fill_with_favorites: raw.fill_with_favorites !== false,
     title: typeof raw.title === 'string' ? raw.title : 'Listening',
     accent: normalizeText(raw.accent, DEFAULT_ACCENT),
   };

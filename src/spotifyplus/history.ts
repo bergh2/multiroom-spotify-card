@@ -82,6 +82,20 @@ export function sortedPlaylists(store: HistoryStore, sort: PlaylistSort, limit: 
   return list.slice(0, limit).map((e) => ({ uri: e.uri, name: e.name, image: e.image }));
 }
 
+/** Top up a (short) played list with the user's own playlists, in their Spotify order, without duplicates. */
+export function fillWithFavorites(played: Playlist[], favorites: PlaylistMeta[], count: number): Playlist[] {
+  if (played.length >= count) return played.slice(0, count);
+  const seen = new Set(played.map((p) => p.uri));
+  const out = [...played];
+  for (const f of favorites) {
+    if (out.length >= count) break;
+    if (seen.has(f.uri)) continue;
+    seen.add(f.uri);
+    out.push({ uri: f.uri, name: f.name, image: f.image });
+  }
+  return out;
+}
+
 /** Keep the store bounded: drop the least recently played beyond `max` entries. */
 export function prune(store: HistoryStore, max = 200): HistoryStore {
   const all = Object.values(store.entries);

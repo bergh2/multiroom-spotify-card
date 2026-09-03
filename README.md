@@ -63,6 +63,7 @@ playlist_layout: tiles        # tiles | list
 playlist_sort: last_played    # last_played | play_count
 playlist_count: 6
 history_key: spotifyplus-media-card
+fill_with_favorites: true     # top up the grid with your own playlists until playlist_count
 title: Listening
 ```
 
@@ -79,6 +80,9 @@ How it works:
   Assistant user data under `history_key`. "Last played" and "most played" are
   both derived from that history, so "most played" keeps improving over time.
   Names and artwork come from your followed playlists, cached for an hour.
+  Spotify only reports the last 50 tracks, so a fresh history may contain few
+  playlists; with `fill_with_favorites` (default on) the remaining slots show
+  your own playlists in Spotify's order until real plays take their place.
 - Refreshes: on load, a minute after a start, and every 10 minutes while
   visible. Roughly 10 to 30 API calls per day.
 

@@ -24,6 +24,7 @@ const SCHEMA = [
   },
   { name: 'default_preset', selector: { text: {} } },
   { name: 'master_volume', selector: { boolean: {} } },
+  { name: 'fill_with_favorites', selector: { boolean: {} } },
   { name: 'history_key', selector: { text: {} } },
   { name: 'title', selector: { text: {} } },
   { name: 'accent', selector: { text: {} } },
@@ -44,6 +45,7 @@ const LABELS: Record<string, string> = {
   preset_tolerance: 'Preset match tolerance',
   default_preset: 'Preset applied on a fresh start (name)',
   master_volume: 'Show master volume row',
+  fill_with_favorites: 'Fill empty slots with my own playlists',
   history_key: 'Play history key (shared by cards using the same key)',
   title: 'Title',
   accent: 'Accent color (CSS)',
@@ -100,6 +102,7 @@ export class SpotifyPlusMediaCardEditor extends LitElement {
       spotifyplus_entity: c.spotifyplus_entity ?? 'media_player.spotifyplus',
       control_via: c.control_via ?? 'cast',
       master_volume: c.master_volume !== false,
+      fill_with_favorites: c.fill_with_favorites !== false,
       shuffle: c.shuffle === true,
     };
   }

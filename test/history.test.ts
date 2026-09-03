@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EMPTY_HISTORY, applyMeta, mergeRecent, missingMeta, noteStarted, prune, sortedPlaylists } from '../src/spotifyplus/history';
+import { EMPTY_HISTORY, applyMeta, fillWithFavorites, mergeRecent, missingMeta, noteStarted, prune, sortedPlaylists } from '../src/spotifyplus/history';
 import { toPlaylistMeta, toRecentTracks } from '../src/spotifyplus/services';
 
 const t = (uri: string | null, playedAt: number, name = 'x') => ({ contextUri: uri, playedAt, trackName: name });
@@ -47,6 +47,18 @@ describe('meta and sorting', () => {
     const s = noteStarted(EMPTY_HISTORY, { uri: A, name: 'Alpha', image: null }, 123);
     expect(sortedPlaylists(s, 'last_played', 5)[0]).toMatchObject({ uri: A, name: 'Alpha' });
     expect(s.entries[A].plays).toBe(0);
+  });
+
+  it('fills empty slots with favourites, keeping played ones first and skipping duplicates', () => {
+    const played = [{ uri: A, name: 'Alpha', image: null }];
+    const favs = [
+      { uri: A, name: 'Alpha', image: 'a.jpg' },
+      { uri: B, name: 'Beta', image: null },
+      { uri: 'spotify:playlist:CCCCCCCCCCCCCCCCCCCCCC', name: 'Gamma', image: null },
+    ];
+    expect(fillWithFavorites(played, favs, 2).map((p) => p.name)).toEqual(['Alpha', 'Beta']);
+    expect(fillWithFavorites(played, favs, 10).map((p) => p.name)).toEqual(['Alpha', 'Beta', 'Gamma']);
+    expect(fillWithFavorites([...played, { uri: B, name: 'Beta', image: null }], favs, 1).map((p) => p.name)).toEqual(['Alpha']);
   });
 
   it('prunes the least recently played entries', () => {
