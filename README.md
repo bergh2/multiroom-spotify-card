@@ -123,6 +123,7 @@ play count as tracked by Music Assistant (only plays through MA count).
 | `presets` | List of `{name, levels}`. `levels` maps entity → volume 0–100; omitted speakers are muted. |
 | `default_preset` | Preset applied automatically when a playlist is started while the group is cold (not playing or paused) and no speaker has been touched since it went idle. Pause/resume and preset taps are never overridden. |
 | `master_volume` | Shows an "All" row above the speakers: the average of the unmuted speakers; dragging scales each of them proportionally. |
+| `layout` | `vertical` (default): one column. `horizontal`: playlists and now-playing on the left, speakers on the right. `auto`: horizontal whenever the card is at least 600 px wide, so a tablet flips between one and two columns with its orientation. Give the card the full section width (`grid_options: { columns: full }`) for the two-column layouts. |
 | `playlist_layout`, `playlist_sort`, `playlist_count`, `tile_columns` | Playlist section layout and size. |
 | `speaker_count` | Number of speaker rows shown in the card; the picker always lists all. |
 | `preset_tolerance` | The active preset is derived from live speaker state; this is the allowed volume difference. |
