@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { throttle } from '../src/util/throttle';
+import { throttle } from '../src/shared/throttle';
 
 describe('throttle', () => {
   beforeEach(() => vi.useFakeTimers());

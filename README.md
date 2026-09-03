@@ -1,103 +1,139 @@
-# Spotify Media Card
+# Spotify Media Cards for Home Assistant
 
-A Home Assistant dashboard card for starting Spotify playlists on multi-room
-Chromecast speakers through [Music Assistant](https://www.music-assistant.io/).
+Two Home Assistant dashboard cards with the same Apple-style design for
+starting Spotify playlists on multi-room Chromecast speakers:
+
+| Card | Starts music through | Best for |
+|---|---|---|
+| `spotifyplus-media-card` | [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus): launches Spotify's own Cast receiver on the speaker group, so it is a real Spotify Connect session | You want to keep controlling the music from the Spotify app afterwards |
+| `spotify-media-card` | [Music Assistant](https://www.music-assistant.io/): MA streams the audio itself | You already run Music Assistant and don't need Spotify Connect |
+
+Both cards share:
 
 - Recently played (or most played) playlists as tiles or a compact list, one tap to play.
-- One row per speaker with its own volume slider and on/off toggle.
-- Mood presets (Focus, Chill, Dinner, Party…) that set volumes and mute the rooms not needed.
+- One row per speaker with its own volume slider and on/off toggle, plus a master "All" row.
+- Mood presets (Focus, Standard, Dinner, Party…) that set volumes and mute the rooms not needed, and an optional default preset applied on a fresh start.
 - Compact now-playing bar with transport and seek.
 - Dark and light appearance, following the Home Assistant theme.
 
 ## How multi-room works
 
 Chromecast has no API for dynamic grouping, so synchronized playback uses a
-speaker group created in the Google Home app. The card always plays to the
-Music Assistant `media_player` entity for that group (`group_entity`). Speaker
-rows and presets only mute/unmute and set the volume of each speaker's own
-Google Cast entity, so "off" means "muted in the group".
+speaker group created in the Google Home app. The cards always play to that
+group. Speaker rows and presets only mute/unmute and set the volume of each
+speaker's own Google Cast entity, so "off" means "muted in the group".
 
 ## Requirements
 
 - Home Assistant 2023.7 or newer (2026.x recommended).
-- Music Assistant server + the `music_assistant` integration, with Spotify configured as a provider.
-- Google Cast integration for the individual speakers.
+- Google Cast integration for the individual speakers and the group.
 - A Google Home speaker group containing all speakers you want to control.
+- For `spotifyplus-media-card`: SpotifyPlus v1.0.86 or newer with the
+  [Spotify Desktop Player token](https://github.com/thlucas1/homeassistantcomponent_spotifyplus/wiki/Device-Configuration-Options)
+  configured (needed to wake idle Chromecasts). A helper venv and notes live in `tools/spotifyplus-auth`.
+- For `spotify-media-card`: Music Assistant server + the `music_assistant` integration with Spotify as a provider.
 
 ## Installation
 
-### HACS
+Copy the card file(s) from `dist/` to `config/www/<card>/<card>.js` and add
+`/local/<card>/<card>.js` as a *JavaScript module* resource under
+Settings → Dashboards → Resources. `npm run deploy` does the copy for you
+(set `HA_WWW_ROOT=<path to config/www>` in `.env.local`).
 
-Add this repository as a custom repository of type *Dashboard*, install, and
-reload the browser. HACS registers the resource automatically.
+## `spotifyplus-media-card`
 
-### Manual
+```yaml
+type: custom:spotifyplus-media-card
+spotifyplus_entity: media_player.spotifyplus   # SpotifyPlus player (default)
+cast_group_entity: media_player.alla           # Google Cast entity of the speaker group
+device_name: Alla                              # Spotify Connect name the playlist is started on
+control_via: cast                              # cast (no API calls) | spotifyplus
+shuffle: false
+speakers:
+  - entity: media_player.hk_citation_100_l
+    name: Living L
+  - entity: media_player.nest_hub
+    name: Kök
+presets:
+  - name: Standard
+    levels: { media_player.hk_citation_100_l: 30, media_player.nest_hub: 22 }
+default_preset: Standard
+master_volume: true
+playlist_layout: tiles        # tiles | list
+playlist_sort: last_played    # last_played | play_count
+playlist_count: 6
+history_key: spotifyplus-media-card
+title: Listening
+```
 
-Copy `dist/spotify-media-card.js` to `config/www/spotify-media-card/` and add
-`/local/spotify-media-card/spotify-media-card.js` as a *JavaScript module*
-resource under Settings → Dashboards → Resources.
+How it works:
 
-## Configuration
+- **Start**: `spotifyplus.player_media_play_context` on `device_name`. The now-playing
+  bar shows "Starting on …" with a spinner until the Cast group reports the Spotify
+  app playing (typically 10 to 30 s), with a 60 s timeout.
+- **Now playing and transport** come from the Cast group entity by default, which
+  costs no Spotify API calls and stays in sync with the Spotify app. Set
+  `control_via: spotifyplus` to use the SpotifyPlus entity instead.
+- **Playlists**: the card reads Spotify's "recently played" tracks (from every app,
+  not only this card) and folds them into a play history stored in Home
+  Assistant user data under `history_key`. "Last played" and "most played" are
+  both derived from that history, so "most played" keeps improving over time.
+  Names and artwork come from your followed playlists, cached for an hour.
+- Refreshes: on load, a minute after a start, and every 10 minutes while
+  visible. Roughly 10 to 30 API calls per day.
+
+## `spotify-media-card` (Music Assistant)
 
 ```yaml
 type: custom:spotify-media-card
 group_entity: media_player.alla_2            # MA entity of the Google Home group (required)
 speakers:                                    # Google Cast entities (required)
   - entity: media_player.hk_citation_100_l
-    name: Vardagsrum
+    name: Living L
   - entity: media_player.nest_hub
     name: Kök
-  - entity: media_player.g10
-    name: Sovrum
-  - entity: media_player.nest_mini
-    name: Barnrum
-presets:                                     # optional; speakers not listed are muted
-  - name: Focus
-    levels: { media_player.g10: 46 }
+presets:
   - name: Standard
-    levels: { media_player.hk_citation_100_l: 30, media_player.nest_hub: 22, media_player.g10: 18 }
-  - name: Dinner
-    levels: { media_player.hk_citation_100_l: 34, media_player.nest_hub: 44 }
-  - name: Party
-    levels: { media_player.hk_citation_100_l: 78, media_player.nest_hub: 68, media_player.nest_mini: 62 }
-default_preset: Standard      # optional; applied when a playlist starts from a cold group
-master_volume: true           # show the "All" row that scales every unmuted speaker
-playlist_layout: tiles        # tiles | list
-playlist_sort: last_played    # last_played | play_count
-playlist_count: 6             # 1..50 (default 6 for tiles, 10 for list)
-tile_columns: 3               # 2..6
-speaker_count: 4              # rows shown; the speaker picker always lists all
+    levels: { media_player.hk_citation_100_l: 30, media_player.nest_hub: 22 }
+default_preset: Standard
+master_volume: true
+playlist_layout: tiles
+playlist_sort: last_played
+playlist_count: 6
+tile_columns: 3
+speaker_count: 4
 title: Listening
 accent: "oklch(0.62 0.16 285)"
-preset_tolerance: 3           # volume points within which a preset counts as active
+preset_tolerance: 3
 ma_config_entry_id: ""        # optional; auto-discovered when empty
 ```
 
+Playlists come from `music_assistant.get_library` sorted by last played or
+play count as tracked by Music Assistant (only plays through MA count).
+
+## Shared options
+
 | Option | Description |
 |---|---|
-| `group_entity` | Music Assistant player for the Cast group. Playback, transport and now-playing use this entity. |
 | `speakers` | Google Cast entities, as strings or `{entity, name}`. Order is the display order. |
 | `presets` | List of `{name, levels}`. `levels` maps entity → volume 0–100; omitted speakers are muted. |
-| `default_preset` | Name of a preset applied automatically when you tap a playlist while the group is cold (not playing or paused) and no speaker has been touched since it went idle. Pause/resume and preset taps are never overridden. |
-| `master_volume` | Shows an "All" row above the speakers. Its level is the average of the unmuted speakers; dragging it scales each of them proportionally. With everything muted, dragging unmutes all speakers at that level. |
-| `playlist_layout` | `tiles` (grid) or `list` (dense rows). |
-| `playlist_sort` | `last_played` or `play_count`, as tracked by Music Assistant. |
-| `playlist_count` | Number of playlists fetched and shown. |
-| `tile_columns` | Grid columns in tile layout. |
-| `speaker_count` | Number of speaker rows shown in the card. |
+| `default_preset` | Preset applied automatically when a playlist is started while the group is cold (not playing or paused) and no speaker has been touched since it went idle. Pause/resume and preset taps are never overridden. |
+| `master_volume` | Shows an "All" row above the speakers: the average of the unmuted speakers; dragging scales each of them proportionally. |
+| `playlist_layout`, `playlist_sort`, `playlist_count`, `tile_columns` | Playlist section layout and size. |
+| `speaker_count` | Number of speaker rows shown in the card; the picker always lists all. |
 | `preset_tolerance` | The active preset is derived from live speaker state; this is the allowed volume difference. |
-
-Note: Music Assistant only tracks plays that go through Music Assistant, so
-playlists played directly from the Spotify app do not affect the order.
+| `title`, `accent` | Header text and accent colour. |
 
 ## Development
 
 ```bash
 npm install
-npm run dev        # standalone preview with a mock hass at http://localhost:5173/dev/index.html
+npm run dev        # dev preview with a mock hass: /dev/index.html (MA) and /dev/spotifyplus.html (SpotifyPlus)
 npm test           # unit tests
-npm run build      # dist/spotify-media-card.js
-npm run deploy     # build + copy to HA_WWW_DIR (set in .env.local)
+npm run build      # dist/spotify-media-card.js and dist/spotifyplus-media-card.js
+npm run deploy     # build + copy both to HA_WWW_ROOT/<card>/
 ```
 
-Put `HA_WWW_DIR=<path to config/www/spotify-media-card>` in `.env.local` for `npm run deploy`.
+Layout: `src/shared/` holds everything backend-independent (styles, speaker
+logic, the `SpeakerCardBase` element), `src/ma/` and `src/spotifyplus/` the
+backend-specific parts, and the two `src/*-media-card.ts` files are the entries.

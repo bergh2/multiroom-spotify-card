@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { clearCache, discoverEntryId, getPlaylists, normalizeItems, resolveImage } from '../src/ha/library';
+import { clearCache, discoverEntryId, getPlaylists, normalizeItems, resolveImage } from '../src/ma/library';
 import type { HomeAssistant } from '../src/types';
 
 describe('resolveImage', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { livePosition } from '../src/state/position';
-import { fmtTime } from '../src/util/format';
+import { livePosition } from '../src/shared/position';
+import { fmtTime } from '../src/shared/format';
 import type { NowPlaying } from '../src/types';
 
 const np = (over: Partial<NowPlaying>): NowPlaying => ({

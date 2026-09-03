@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing, type TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import type { CardConfig, HomeAssistant } from './types';
+import type { CardConfig, HomeAssistant } from '../types';
 
 declare global {
   interface Window {

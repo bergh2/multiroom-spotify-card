@@ -1,10 +1,14 @@
-import type { HomeAssistant, NormalizedConfig, NowPlaying, PresetConfig, Speaker } from '../types';
+import type { HomeAssistant, NowPlaying, PresetConfig, Speaker, SpeakerConfig } from './types';
 
 const UNAVAILABLE = new Set(['unavailable', 'unknown']);
 
-export function deriveSpeakers(hass: HomeAssistant, cfg: NormalizedConfig): Speaker[] {
-  const groupPlaying = hass.states[cfg.group_entity]?.state === 'playing';
-  return cfg.speakers.map((s) => {
+/**
+ * Live speaker rows from the Google Cast entities. `groupEntity` is the entity
+ * whose "playing" state tells us the group is active (used for the not-in-group flag).
+ */
+export function deriveSpeakers(hass: HomeAssistant, speakers: SpeakerConfig[], groupEntity: string): Speaker[] {
+  const groupPlaying = hass.states[groupEntity]?.state === 'playing';
+  return speakers.map((s) => {
     const st = hass.states[s.entity];
     const attrs = st?.attributes ?? {};
     const available = !!st && !UNAVAILABLE.has(st.state);
@@ -127,14 +131,22 @@ export function groupSummary(speakers: Speaker[]): string {
   return `${on[0].name} + ${on.length - 1} more`;
 }
 
-/** Cheap change detector so the card only re-renders when something it shows changed. */
-export function fingerprint(hass: HomeAssistant, cfg: NormalizedConfig): string {
+/** Cheap change detector so a card only re-renders when something it shows changed. */
+export function fingerprint(hass: HomeAssistant, entities: string[]): string {
   const parts: string[] = [hass.themes?.darkMode ? 'd' : 'l'];
-  const g = hass.states[cfg.group_entity];
-  parts.push(g ? g.last_updated : '-');
-  for (const s of cfg.speakers) {
-    const st = hass.states[s.entity];
+  for (const id of entities) {
+    const st = hass.states[id];
     parts.push(st ? st.last_updated : '-');
   }
   return parts.join('|');
+}
+
+export function errorText(e: unknown): string {
+  if (e && typeof e === 'object') {
+    const o = e as { message?: unknown; error?: { message?: unknown }; body?: { message?: unknown } };
+    if (typeof o.message === 'string') return o.message;
+    if (o.error && typeof o.error.message === 'string') return o.error.message;
+    if (o.body && typeof o.body.message === 'string') return o.body.message;
+  }
+  return String(e);
 }

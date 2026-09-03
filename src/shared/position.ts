@@ -1,4 +1,4 @@
-import type { NowPlaying } from '../types';
+import type { NowPlaying } from './types';
 
 /** Current playback position in seconds, extrapolated from the last reported position. */
 export function livePosition(np: NowPlaying, nowMs: number): number {

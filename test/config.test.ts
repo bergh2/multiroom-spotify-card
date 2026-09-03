@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeConfig } from '../src/config';
+import { normalizeConfig } from '../src/ma/config';
 import type { CardConfig } from '../src/types';
 
 const base: CardConfig = {

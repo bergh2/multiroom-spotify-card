@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { activePreset, deriveNowPlaying, deriveSpeakers, groupSummary, isGroupCold, masterVolume, scaleVolumes } from '../src/state/derive';
-import { normalizeConfig } from '../src/config';
+import { activePreset, deriveNowPlaying, deriveSpeakers, groupSummary, isGroupCold, masterVolume, scaleVolumes } from '../src/shared/derive';
+import { normalizeConfig } from '../src/ma/config';
 import type { HomeAssistant, Speaker } from '../src/types';
 
 function hassWith(states: Record<string, { state: string; attributes: Record<string, unknown> }>): HomeAssistant {
@@ -28,7 +28,7 @@ describe('deriveSpeakers', () => {
       'media_player.b': { state: 'idle', attributes: { volume_level: 0.284, is_volume_muted: true, friendly_name: 'Kök' } },
       'media_player.c': { state: 'unavailable', attributes: {} },
     });
-    const sp = deriveSpeakers(hass, cfg);
+    const sp = deriveSpeakers(hass, cfg.speakers, cfg.group_entity);
     expect(sp[0]).toMatchObject({ name: 'Living', vol: 42, on: true, available: true });
     expect(sp[1]).toMatchObject({ name: 'Kök', vol: 28, on: false, available: true });
     expect(sp[2]).toMatchObject({ name: 'c', vol: 0, on: false, available: false, standby: false });
@@ -40,7 +40,7 @@ describe('deriveSpeakers', () => {
       'media_player.b': { state: 'off', attributes: {} },
       'media_player.c': { state: 'off', attributes: {} },
     });
-    const sp = deriveSpeakers(hass, cfg);
+    const sp = deriveSpeakers(hass, cfg.speakers, cfg.group_entity);
     expect(sp[0]).toMatchObject({ standby: true, on: false, available: true });
     expect(groupSummary(sp)).toBe('Speakers idle');
     expect(activePreset(sp, cfg.presets, 3)).toBeNull();
@@ -127,7 +127,7 @@ describe('notInGroup', () => {
       'media_player.b': { state: 'off', attributes: {} },
       'media_player.c': { state: 'unavailable', attributes: {} },
     });
-    const sp = deriveSpeakers(hass, cfg);
+    const sp = deriveSpeakers(hass, cfg.speakers, cfg.group_entity);
     expect(sp[0].notInGroup).toBe(false);
     expect(sp[1]).toMatchObject({ standby: true, notInGroup: true });
     expect(sp[2].notInGroup).toBe(false);

@@ -683,6 +683,24 @@ export const styles = css`
     animation: sheetUp 0.22s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
+  .spinner {
+    flex: 0 0 auto;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    border: 1.5px solid var(--track);
+    border-top-color: var(--accent);
+    animation: spin 0.8s linear infinite;
+  }
+  .now.busy .now-title {
+    color: var(--text2);
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
   @keyframes eq {
     0%,
     100% {
