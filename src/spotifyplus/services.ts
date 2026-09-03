@@ -95,6 +95,10 @@ export const playContext = (hass: HomeAssistant, entity: string, contextUri: str
     shuffle,
   });
 
+/** Force SpotifyPlus to rediscover Spotify Connect / Cast devices (fixes stale host addresses). */
+export const refreshDevices = (hass: HomeAssistant, entity: string) =>
+  hass.callService('spotifyplus', 'get_spotify_connect_devices', { entity_id: entity, refresh: true }, undefined, false, true);
+
 // ---- shared play history in HA user data ---------------------------------
 
 export async function loadUserData<T>(hass: HomeAssistant, key: string): Promise<T | null> {

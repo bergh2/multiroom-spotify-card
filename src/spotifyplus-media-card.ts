@@ -229,11 +229,20 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
         this.showToast(`${cfg.device_name} did not start within 60 s. Check the speakers and try again.`, 6000);
       }
     }, START_TIMEOUT_MS);
-    sp.playContext(hass, cfg.spotifyplus_entity, pl.uri, cfg.device_name, cfg.shuffle)
+    const start = () => sp.playContext(hass, cfg.spotifyplus_entity, pl.uri, cfg.device_name, cfg.shuffle);
+    start()
+      .catch(async (e: unknown) => {
+        // A stale Cast address inside SpotifyPlus shows up as "could not activate … timed out".
+        // Refresh its device list once and try again before giving up.
+        this.showToast(`${errorText(e)} Retrying with a refreshed device list…`, 6000);
+        await sp.refreshDevices(hass, cfg.spotifyplus_entity);
+        if (this._starting?.uri !== pl.uri) return;
+        await start();
+      })
       .then(() => this._scheduleRefresh(REFRESH_AFTER_START_MS))
       .catch((e: unknown) => {
         this._starting = null;
-        this.showToast(errorText(e), 6000);
+        this.showToast(errorText(e), 8000);
       });
   }
 
