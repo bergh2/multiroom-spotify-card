@@ -194,6 +194,11 @@ export class SpotifyMediaCard extends LitElement {
     const hass = this._hass;
     const cfg = this._config;
     if (!hass || !cfg) return;
+    const groupState = hass.states[cfg.group_entity]?.state;
+    if (!groupState || groupState === 'unavailable' || groupState === 'unknown') {
+      this._showToast(`${cfg.group_entity} is unavailable. Check the Music Assistant integration.`);
+      return;
+    }
     this._activeUri = pl.uri;
     this._saveActive(cfg.group_entity, pl.uri);
     // Fresh start with untouched speakers: apply the default preset first.
@@ -673,12 +678,14 @@ export class SpotifyMediaCard extends LitElement {
     const pos = this._position(np, now);
     const dur = np.duration ?? 0;
     const pct = dur > 0 ? (pos / dur) * 100 : 0;
+    const unavailable = np.found && (np.state === 'unavailable' || np.state === 'unknown');
     let title = np.title;
     if (!np.found) title = 'Player not found';
+    else if (unavailable) title = 'Player unavailable';
     else if (!title) title = np.state === 'playing' ? 'Playing' : np.state === 'paused' ? 'Paused' : 'Nothing playing';
-    const artist = !np.found ? cfg.group_entity : [np.artist, active?.name].filter(Boolean).join(' · ');
-    const canSeek = np.found && dur > 0;
-    const disabled = !np.found;
+    const artist = !np.found || unavailable ? cfg.group_entity : [np.artist, active?.name].filter(Boolean).join(' · ');
+    const canSeek = np.found && !unavailable && dur > 0;
+    const disabled = !np.found || unavailable;
     return html`<div class=${classMap({ now: true, paused: !np.playing })}>
       <div class="now-row">
         ${this._renderArt('now-art', np.art, `now:${np.art ?? ''}`, 0)}
