@@ -1,4 +1,4 @@
-import type { PlaylistLayout, PlaylistSort, PresetConfig, SpeakerConfig, SpeakerSectionConfig } from './shared/types';
+import type { CardLayout, PlaylistLayout, PlaylistSort, PresetConfig, SpeakerConfig, SpeakerSectionConfig } from './shared/types';
 
 export * from './shared/types';
 
@@ -21,6 +21,8 @@ export interface CardConfig {
   default_preset?: string;
   /** show the master volume row above the speakers (default true) */
   master_volume?: boolean;
+  /** vertical (default) | horizontal | auto */
+  layout?: CardLayout;
 }
 
 export interface NormalizedConfig extends SpeakerSectionConfig {

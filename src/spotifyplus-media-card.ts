@@ -279,40 +279,35 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
     const unavailable = np.found && (np.state === 'unavailable' || np.state === 'unknown');
     const player = this._playerEntity;
 
-    return html`
-      <ha-card>
-        <div class="card">
-          ${this.renderHeader(cfg.title, speakers)}
-          ${this.renderPlaylists({
-            layout: cfg.playlist_layout,
-            count: cfg.playlist_count,
-            columns: cfg.tile_columns,
-            playlists: this._playlists,
-            status: this._plStatus,
-            error: this._plError,
-            activeUri: this._activeUri,
-            onPlay: (pl) => this._play(pl),
-            onRetry: () => void this._refresh(),
-          })}
-          ${this.renderSpeakerSection(speakers)}
-          ${this.renderNowBar(np, now, {
-            title: starting ? `Starting on ${cfg.device_name}…` : undefined,
-            subtitle: starting
-              ? `${startingName} · ${Math.round((now - starting.since) / 1000)} s`
-              : !np.found || unavailable
-                ? player
-                : [np.artist, playlistName].filter(Boolean).join(' · '),
-            busy: !!starting,
-            disabled: !!starting,
-            onPrev: () => media.prevTrack(hass, player),
-            onPlayPause: () => media.playPause(hass, player),
-            onNext: () => media.nextTrack(hass, player),
-            onSeek: (s) => media.seek(hass, player, s),
-          })}
-          ${this.renderPicker(speakers)} ${this.renderToast()}
-        </div>
-      </ha-card>
+    const left = html`
+      ${this.renderHeader(cfg.title, speakers)}
+      ${this.renderPlaylists({
+        layout: cfg.playlist_layout,
+        count: cfg.playlist_count,
+        columns: cfg.tile_columns,
+        playlists: this._playlists,
+        status: this._plStatus,
+        error: this._plError,
+        activeUri: this._activeUri,
+        onPlay: (pl) => this._play(pl),
+        onRetry: () => void this._refresh(),
+      })}
+      ${this.renderNowBar(np, now, {
+        title: starting ? `Starting on ${cfg.device_name}…` : undefined,
+        subtitle: starting
+          ? `${startingName} · ${Math.round((now - starting.since) / 1000)} s`
+          : !np.found || unavailable
+            ? player
+            : [np.artist, playlistName].filter(Boolean).join(' · '),
+        busy: !!starting,
+        disabled: !!starting,
+        onPrev: () => media.prevTrack(hass, player),
+        onPlayPause: () => media.playPause(hass, player),
+        onNext: () => media.nextTrack(hass, player),
+        onSeek: (s) => media.seek(hass, player, s),
+      })}
     `;
+    return this.renderShell(left, this.renderSpeakerSection(speakers), [this.renderPicker(speakers), this.renderToast()]);
   }
 }
 

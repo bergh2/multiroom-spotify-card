@@ -1,4 +1,4 @@
-import type { PlaylistLayout, PlaylistSort, PresetConfig, SpeakerConfig, SpeakerSectionConfig } from './types';
+import type { CardLayout, PlaylistLayout, PlaylistSort, PresetConfig, SpeakerConfig, SpeakerSectionConfig } from './types';
 
 export const DEFAULT_ACCENT = 'oklch(0.62 0.16 285)';
 
@@ -71,6 +71,7 @@ export interface RawSpeakerSection {
   preset_tolerance?: unknown;
   master_volume?: unknown;
   default_preset?: unknown;
+  layout?: unknown;
 }
 
 /** Validates the speaker/preset part shared by both cards. */
@@ -81,7 +82,10 @@ export function normalizeSpeakerSection(card: string, raw: RawSpeakerSection): S
   if (defaultPreset && !presets.some((p) => p.name === defaultPreset)) {
     fail(card, `default_preset "${defaultPreset}" is not one of the presets`);
   }
+  const layout = (raw.layout ?? 'vertical') as CardLayout;
+  if (!['vertical', 'horizontal', 'auto'].includes(layout)) fail(card, 'layout must be "vertical", "horizontal" or "auto"');
   return {
+    layout,
     speakers,
     presets,
     speaker_count: intInRange(card, raw.speaker_count, 'speaker_count', 1, 50, speakers.length),

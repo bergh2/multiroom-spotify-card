@@ -387,6 +387,22 @@ export abstract class SpeakerCardBase extends LitElement {
 
   // ---- render helpers ----------------------------------------------------
 
+  /**
+   * Card frame. `left` = header + playlists + now-playing, `right` = speaker section.
+   * In the vertical layout both columns are `display: contents`, so the DOM order
+   * (with the now-playing bar pushed last via CSS `order`) gives the classic stack.
+   */
+  protected renderShell(left: TemplateResult, right: TemplateResult, overlays: Array<TemplateResult | typeof nothing>): TemplateResult {
+    const layout = this.section?.layout ?? 'vertical';
+    return html`<ha-card>
+      <div class=${classMap({ card: true, horizontal: layout === 'horizontal', auto: layout === 'auto' })}>
+        <div class="col-left">${left}</div>
+        <div class="col-right">${right}</div>
+        ${overlays}
+      </div>
+    </ha-card>`;
+  }
+
   protected renderHeader(title: string, speakers: Speaker[]): TemplateResult {
     const onCount = speakers.filter((s) => s.on).length;
     return html`<div class="header">
@@ -505,6 +521,10 @@ export abstract class SpeakerCardBase extends LitElement {
   }
 
   protected renderPlaylists(v: PlaylistsView): TemplateResult {
+    return html`<div class="playlists-area">${this._renderPlaylistsInner(v)}</div>`;
+  }
+
+  private _renderPlaylistsInner(v: PlaylistsView): TemplateResult {
     if (v.status === 'error' && !v.playlists.length) {
       return html`<div class="pl-msg">
         <span>${v.error || 'Could not load playlists'}</span>

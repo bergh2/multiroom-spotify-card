@@ -23,6 +23,7 @@ const config: CardConfig = {
     { name: 'Party', levels: { 'media_player.hk_citation_100_l': 78, 'media_player.nest_hub': 68, 'media_player.nest_mini': 62 } },
   ],
   playlist_layout: 'tiles',
+  layout: 'auto',
   speaker_count: 4,
   default_preset: 'Standard',
 };

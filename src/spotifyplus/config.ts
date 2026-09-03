@@ -1,4 +1,4 @@
-import type { PlaylistLayout, PlaylistSort, PresetConfig, SpeakerConfig, SpeakerSectionConfig } from '../shared/types';
+import type { CardLayout, PlaylistLayout, PlaylistSort, PresetConfig, SpeakerConfig, SpeakerSectionConfig } from '../shared/types';
 import { DEFAULT_ACCENT, fail, isMediaPlayer, normalizePlaylistView, normalizeSpeakerSection, normalizeText } from '../shared/config-utils';
 
 export type ControlVia = 'cast' | 'spotifyplus';
@@ -28,6 +28,8 @@ export interface SpCardConfig {
   history_key?: string;
   /** top up the grid with the user's own playlists until playlist_count is reached (default true) */
   fill_with_favorites?: boolean;
+  /** vertical (default) | horizontal | auto */
+  layout?: CardLayout;
   title?: string;
   accent?: string;
 }

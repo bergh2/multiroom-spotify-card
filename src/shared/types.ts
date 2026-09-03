@@ -74,6 +74,9 @@ export interface NowPlaying {
   positionUpdatedAt: string | null;
 }
 
+/** vertical: single column; horizontal: playlists + player left, speakers right; auto: horizontal when wide enough */
+export type CardLayout = 'vertical' | 'horizontal' | 'auto';
+
 /** Options shared by both cards' speaker sections. */
 export interface SpeakerSectionConfig {
   speakers: SpeakerConfig[];
@@ -82,4 +85,5 @@ export interface SpeakerSectionConfig {
   preset_tolerance: number;
   master_volume: boolean;
   default_preset: string;
+  layout: CardLayout;
 }

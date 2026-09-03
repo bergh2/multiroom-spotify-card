@@ -25,6 +25,7 @@ const config: SpCardConfig = {
   ],
   default_preset: 'Standard',
   playlist_layout: 'tiles',
+  layout: 'auto',
 };
 
 const card = document.createElement('spotifyplus-media-card') as SpotifyPlusMediaCard;

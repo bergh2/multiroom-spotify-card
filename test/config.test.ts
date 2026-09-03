@@ -54,6 +54,12 @@ describe('normalizeConfig', () => {
     expect(normalizeConfig({ ...base, master_volume: false }).master_volume).toBe(false);
   });
 
+  it('validates the card layout', () => {
+    expect(normalizeConfig(base).layout).toBe('vertical');
+    expect(normalizeConfig({ ...base, layout: 'auto' }).layout).toBe('auto');
+    expect(() => normalizeConfig({ ...base, layout: 'sideways' as never })).toThrow(/layout/);
+  });
+
   it('rejects bad enums and ranges', () => {
     expect(() => normalizeConfig({ ...base, playlist_layout: 'grid' as never })).toThrow(/playlist_layout/);
     expect(() => normalizeConfig({ ...base, playlist_sort: 'name' as never })).toThrow(/playlist_sort/);

@@ -668,6 +668,67 @@ export const styles = css`
     color: var(--text2);
   }
 
+  /* Layout: two columns (playlists + player | speakers) */
+  :host {
+    container-type: inline-size;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+  }
+  .col-left,
+  .col-right {
+    display: contents;
+  }
+  /* vertical order: header, playlists, speakers, now-playing */
+  .col-left > .now {
+    order: 5;
+  }
+  .card.horizontal {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 22px;
+    align-items: stretch;
+  }
+  .card.horizontal .col-left,
+  .card.horizontal .col-right {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .card.horizontal .col-left > .playlists-area {
+    flex: 1 1 auto;
+  }
+  .card.horizontal .col-left > .now {
+    margin-top: auto;
+  }
+  .card.horizontal .col-right > .speakers {
+    margin-bottom: 0;
+  }
+  @container (min-width: 600px) {
+    .card.auto {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      column-gap: 22px;
+      align-items: stretch;
+    }
+    .card.auto .col-left,
+    .card.auto .col-right {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .card.auto .col-left > .playlists-area {
+      flex: 1 1 auto;
+    }
+    .card.auto .col-left > .now {
+      margin-top: auto;
+    }
+    .card.auto .col-right > .speakers {
+      margin-bottom: 0;
+    }
+  }
+
   .toast {
     position: absolute;
     left: 14px;
