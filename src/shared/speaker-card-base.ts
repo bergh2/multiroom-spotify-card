@@ -390,16 +390,20 @@ export abstract class SpeakerCardBase extends LitElement {
   // ---- render helpers ----------------------------------------------------
 
   /**
-   * Card frame. `left` = header + playlists + now-playing, `right` = speaker section.
-   * In the vertical layout both columns are `display: contents`, so the DOM order
-   * (with the now-playing bar pushed last via CSS `order`) gives the classic stack.
+   * Card frame. Two-column layout: header + playlists on the left, now-playing
+   * above the speaker section on the right. In the vertical layout both columns
+   * are `display: contents` and CSS `order` pushes the now-playing bar last, which
+   * gives the classic stack: header, playlists, speakers, now-playing.
    */
-  protected renderShell(left: TemplateResult, right: TemplateResult, overlays: Array<TemplateResult | typeof nothing>): TemplateResult {
+  protected renderShell(
+    parts: { header: TemplateResult; playlists: TemplateResult; speakers: TemplateResult; now: TemplateResult },
+    overlays: Array<TemplateResult | typeof nothing>,
+  ): TemplateResult {
     const layout = this.section?.layout ?? 'vertical';
     return html`<ha-card>
       <div class=${classMap({ card: true, horizontal: layout === 'horizontal', auto: layout === 'auto' })}>
-        <div class="col-left">${left}</div>
-        <div class="col-right">${right}</div>
+        <div class="col-left">${parts.header}${parts.playlists}</div>
+        <div class="col-right">${parts.now}${parts.speakers}</div>
         ${overlays}
       </div>
     </ha-card>`;

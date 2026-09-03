@@ -284,7 +284,7 @@ C.elementStyles = [], C.shadowRootOptions = { mode: "open" }, C[H("elementProper
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const R = globalThis, ut = (i) => i, J = R.trustedTypes, ft = J ? J.createPolicy("lit-html", { createHTML: (i) => i }) : void 0, Ct = "$lit$", x = `lit$${Math.random().toFixed(9).slice(2)}$`, Mt = "?" + x, Qt = `<${Mt}>`, E = document, L = () => E.createComment(""), q = (i) => i === null || typeof i != "object" && typeof i != "function", at = Array.isArray, te = (i) => at(i) || typeof (i == null ? void 0 : i[Symbol.iterator]) == "function", et = `[ 	
+const R = globalThis, ut = (i) => i, J = R.trustedTypes, ft = J ? J.createPolicy("lit-html", { createHTML: (i) => i }) : void 0, Ct = "$lit$", x = `lit$${Math.random().toFixed(9).slice(2)}$`, Mt = "?" + x, Qt = `<${Mt}>`, E = document, L = () => E.createComment(""), B = (i) => i === null || typeof i != "object" && typeof i != "function", at = Array.isArray, te = (i) => at(i) || typeof (i == null ? void 0 : i[Symbol.iterator]) == "function", et = `[ 	
 \f\r]`, j = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, mt = /-->/g, yt = />/g, k = RegExp(`>|${et}(?:([^\\s"'>=/]+)(${et}*=${et}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), _t = /'/g, gt = /"/g, Tt = /^(?:script|style|textarea|title)$/i, Ut = (i) => (t, ...e) => ({ _$litType$: i, strings: t, values: e }), h = Ut(1), g = Ut(2), w = Symbol.for("lit-noChange"), u = Symbol.for("lit-nothing"), vt = /* @__PURE__ */ new WeakMap(), A = E.createTreeWalker(E, 129);
 function zt(i, t) {
@@ -303,13 +303,13 @@ const ee = (i, t) => {
   }
   return [zt(i, n + (i[e] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), s];
 };
-class B {
+class q {
   constructor({ strings: t, _$litType$: e }, s) {
     let r;
     this.parts = [];
     let n = 0, o = 0;
     const l = t.length - 1, a = this.parts, [c, p] = ee(t, e);
-    if (this.el = B.createElement(c, s), A.currentNode = this.el.content, e === 2 || e === 3) {
+    if (this.el = q.createElement(c, s), A.currentNode = this.el.content, e === 2 || e === 3) {
       const d = this.el.content.firstChild;
       d.replaceWith(...d.childNodes);
     }
@@ -344,7 +344,7 @@ function U(i, t, e = i, s) {
   var o, l;
   if (t === w) return t;
   let r = s !== void 0 ? (o = e._$Co) == null ? void 0 : o[s] : e._$Cl;
-  const n = q(t) ? void 0 : t._$litDirective$;
+  const n = B(t) ? void 0 : t._$litDirective$;
   return (r == null ? void 0 : r.constructor) !== n && ((l = r == null ? void 0 : r._$AO) == null || l.call(r, !1), n === void 0 ? r = void 0 : (r = new n(i), r._$AT(i, e, s)), s !== void 0 ? (e._$Co ?? (e._$Co = []))[s] = r : e._$Cl = r), r !== void 0 && (t = U(i, r._$AS(i, t.values), r, s)), t;
 }
 class se {
@@ -395,7 +395,7 @@ class W {
     return this._$AB;
   }
   _$AI(t, e = this) {
-    t = U(this, t, e), q(t) ? t === u || t == null || t === "" ? (this._$AH !== u && this._$AR(), this._$AH = u) : t !== this._$AH && t !== w && this._(t) : t._$litType$ !== void 0 ? this.$(t) : t.nodeType !== void 0 ? this.T(t) : te(t) ? this.k(t) : this._(t);
+    t = U(this, t, e), B(t) ? t === u || t == null || t === "" ? (this._$AH !== u && this._$AR(), this._$AH = u) : t !== this._$AH && t !== w && this._(t) : t._$litType$ !== void 0 ? this.$(t) : t.nodeType !== void 0 ? this.T(t) : te(t) ? this.k(t) : this._(t);
   }
   O(t) {
     return this._$AA.parentNode.insertBefore(t, this._$AB);
@@ -404,11 +404,11 @@ class W {
     this._$AH !== t && (this._$AR(), this._$AH = this.O(t));
   }
   _(t) {
-    this._$AH !== u && q(this._$AH) ? this._$AA.nextSibling.data = t : this.T(E.createTextNode(t)), this._$AH = t;
+    this._$AH !== u && B(this._$AH) ? this._$AA.nextSibling.data = t : this.T(E.createTextNode(t)), this._$AH = t;
   }
   $(t) {
     var n;
-    const { values: e, _$litType$: s } = t, r = typeof s == "number" ? this._$AC(t) : (s.el === void 0 && (s.el = B.createElement(zt(s.h, s.h[0]), this.options)), s);
+    const { values: e, _$litType$: s } = t, r = typeof s == "number" ? this._$AC(t) : (s.el === void 0 && (s.el = q.createElement(zt(s.h, s.h[0]), this.options)), s);
     if (((n = this._$AH) == null ? void 0 : n._$AD) === r) this._$AH.p(e);
     else {
       const o = new se(r, this), l = o.u(this.options);
@@ -417,7 +417,7 @@ class W {
   }
   _$AC(t) {
     let e = vt.get(t.strings);
-    return e === void 0 && vt.set(t.strings, e = new B(t)), e;
+    return e === void 0 && vt.set(t.strings, e = new q(t)), e;
   }
   k(t) {
     at(this._$AH) || (this._$AH = [], this._$AR());
@@ -451,11 +451,11 @@ class X {
   _$AI(t, e = this, s, r) {
     const n = this.strings;
     let o = !1;
-    if (n === void 0) t = U(this, t, e, 0), o = !q(t) || t !== this._$AH && t !== w, o && (this._$AH = t);
+    if (n === void 0) t = U(this, t, e, 0), o = !B(t) || t !== this._$AH && t !== w, o && (this._$AH = t);
     else {
       const l = t;
       let a, c;
-      for (t = n[0], a = 0; a < n.length - 1; a++) c = U(this, l[s + a], e, a), c === w && (c = this._$AH[a]), o || (o = !q(c) || c !== this._$AH[a]), c === u ? t = u : t !== u && (t += (c ?? "") + n[a + 1]), this._$AH[a] = c;
+      for (t = n[0], a = 0; a < n.length - 1; a++) c = U(this, l[s + a], e, a), c === w && (c = this._$AH[a]), o || (o = !B(c) || c !== this._$AH[a]), c === u ? t = u : t !== u && (t += (c ?? "") + n[a + 1]), this._$AH[a] = c;
     }
     o && !r && this.j(t);
   }
@@ -505,7 +505,7 @@ class oe {
   }
 }
 const st = R.litHtmlPolyfillSupport;
-st == null || st(B, W), (R.litHtmlVersions ?? (R.litHtmlVersions = [])).push("3.3.3");
+st == null || st(q, W), (R.litHtmlVersions ?? (R.litHtmlVersions = [])).push("3.3.3");
 const ae = (i, t, e) => {
   const s = (e == null ? void 0 : e.renderBefore) ?? t;
   let r = s._$litPart$;
@@ -1553,7 +1553,7 @@ const Lt = "important", Ae = " !" + Lt, N = Rt(class extends Dt {
     display: contents;
   }
   /* vertical order: header, playlists, speakers, now-playing */
-  .col-left > .now {
+  .col-right > .now {
     order: 5;
   }
   .card.horizontal {
@@ -1571,8 +1571,9 @@ const Lt = "important", Ae = " !" + Lt, N = Rt(class extends Dt {
   .card.horizontal .col-left > .playlists-area {
     flex: 1 1 auto;
   }
-  .card.horizontal .col-left > .now {
-    margin-top: auto;
+  .card.horizontal .col-right > .now {
+    order: 0;
+    margin-bottom: 16px;
   }
   .card.horizontal .col-right > .speakers {
     margin-bottom: 0;
@@ -1596,8 +1597,9 @@ const Lt = "important", Ae = " !" + Lt, N = Rt(class extends Dt {
     .card.auto .col-left > .playlists-area {
       flex: 1 1 auto;
     }
-    .card.auto .col-left > .now {
-      margin-top: auto;
+    .card.auto .col-right > .now {
+      order: 0;
+      margin-bottom: 16px;
     }
     .card.auto .col-right > .speakers {
       margin-bottom: 0;
@@ -1696,7 +1698,7 @@ function Ee(i, t) {
   }
   return i.duration !== null && (e = Math.min(e, i.duration)), Math.max(0, e);
 }
-const O = (i, t, e, s) => i.callService("media_player", t, s, { entity_id: e }), Pe = (i, t) => O(i, "media_play_pause", t), Ce = (i, t) => O(i, "media_next_track", t), Me = (i, t) => O(i, "media_previous_track", t), Te = (i, t, e) => O(i, "media_seek", t, { seek_position: Math.max(0, Math.round(e)) }), qt = (i, t, e) => O(i, "volume_set", t, { volume_level: Math.max(0, Math.min(100, e)) / 100 }), M = (i, t, e) => O(i, "volume_mute", t, { is_volume_muted: e });
+const O = (i, t, e, s) => i.callService("media_player", t, s, { entity_id: e }), Pe = (i, t) => O(i, "media_play_pause", t), Ce = (i, t) => O(i, "media_next_track", t), Me = (i, t) => O(i, "media_previous_track", t), Te = (i, t, e) => O(i, "media_seek", t, { seek_position: Math.max(0, Math.round(e)) }), Bt = (i, t, e) => O(i, "volume_set", t, { volume_level: Math.max(0, Math.min(100, e)) / 100 }), M = (i, t, e) => O(i, "volume_mute", t, { is_volume_muted: e });
 async function Ue(i, t, e) {
   const s = [], r = [];
   for (const n of t) {
@@ -1706,7 +1708,7 @@ async function Ue(i, t, e) {
       (n.on || n.standby) && r.push(n.entity);
       continue;
     }
-    n.on || s.push(M(i, n.entity, !1)), s.push(qt(i, n.entity, o));
+    n.on || s.push(M(i, n.entity, !1)), s.push(Bt(i, n.entity, o));
   }
   r.length && s.push(M(i, r, !0)), await Promise.all(s);
 }
@@ -1731,7 +1733,7 @@ function wt(i, t) {
     s = l, r = !0, n || (n = setTimeout(o, Math.max(0, t - c)));
   };
 }
-var ze = Object.defineProperty, Bt = (i, t, e, s) => {
+var ze = Object.defineProperty, qt = (i, t, e, s) => {
   for (var r = void 0, n = i.length - 1, o; n >= 0; n--)
     (o = i[n]) && (r = o(t, e, r) || r);
   return r && ze(t, e, r), r;
@@ -1841,7 +1843,7 @@ const K = 1500, kt = 150, lt = class lt extends T {
     r && e && this._intent.size === 0 && this.applyPreset(this.speakers(t, Date.now()), r);
   }
   _sendVolume(t, e) {
-    !this._hass || this._lastSent.get(t) === e || (this._lastSent.set(t, e), this.run(qt(this._hass, t, e)));
+    !this._hass || this._lastSent.get(t) === e || (this._lastSent.set(t, e), this.run(Bt(this._hass, t, e)));
   }
   _throttleFor(t) {
     let e = this._throttled.get(t);
@@ -1943,18 +1945,19 @@ const K = 1500, kt = 150, lt = class lt extends T {
   }
   // ---- render helpers ----------------------------------------------------
   /**
-   * Card frame. `left` = header + playlists + now-playing, `right` = speaker section.
-   * In the vertical layout both columns are `display: contents`, so the DOM order
-   * (with the now-playing bar pushed last via CSS `order`) gives the classic stack.
+   * Card frame. Two-column layout: header + playlists on the left, now-playing
+   * above the speaker section on the right. In the vertical layout both columns
+   * are `display: contents` and CSS `order` pushes the now-playing bar last, which
+   * gives the classic stack: header, playlists, speakers, now-playing.
    */
-  renderShell(t, e, s) {
-    var n;
-    const r = ((n = this.section) == null ? void 0 : n.layout) ?? "vertical";
+  renderShell(t, e) {
+    var r;
+    const s = ((r = this.section) == null ? void 0 : r.layout) ?? "vertical";
     return h`<ha-card>
-      <div class=${y({ card: !0, horizontal: r === "horizontal", auto: r === "auto" })}>
-        <div class="col-left">${t}</div>
-        <div class="col-right">${e}</div>
-        ${s}
+      <div class=${y({ card: !0, horizontal: s === "horizontal", auto: s === "auto" })}>
+        <div class="col-left">${t.header}${t.playlists}</div>
+        <div class="col-right">${t.now}${t.speakers}</div>
+        ${e}
       </div>
     </ha-card>`;
   }
@@ -2131,10 +2134,10 @@ const K = 1500, kt = 150, lt = class lt extends T {
 };
 lt.styles = Se;
 let V = lt;
-Bt([
+qt([
   b()
 ], V.prototype, "_pickerOpen");
-Bt([
+qt([
   b()
 ], V.prototype, "_toast");
 const Oe = 300 * 1e3, At = /* @__PURE__ */ new Map(), Ie = {
@@ -2193,10 +2196,10 @@ const Le = (i, t, e) => i.callService(
   { media_id: e, media_type: "playlist", enqueue: "replace" },
   { entity_id: t }
 );
-var qe = Object.defineProperty, Be = Object.getOwnPropertyDescriptor, Q = (i, t, e, s) => {
-  for (var r = s > 1 ? void 0 : s ? Be(t, e) : t, n = i.length - 1, o; n >= 0; n--)
+var Be = Object.defineProperty, qe = Object.getOwnPropertyDescriptor, Q = (i, t, e, s) => {
+  for (var r = s > 1 ? void 0 : s ? qe(t, e) : t, n = i.length - 1, o; n >= 0; n--)
     (o = i[n]) && (r = (s ? o(t, e, r) : o(r)) || r);
-  return s && r && qe(t, e, r), r;
+  return s && r && Be(t, e, r), r;
 };
 const Ve = [
   {
@@ -2430,9 +2433,7 @@ let P = class extends V {
     const i = this._config, t = this._hass;
     if (!i) return u;
     if (!t) return h`<ha-card><div class="card"></div></ha-card>`;
-    const e = Date.now(), s = this.speakers(t, e), r = ve(t, i.group_entity), n = this._playlists.find((c) => c.uri === this._activeUri) ?? null, o = r.found && (r.state === "unavailable" || r.state === "unknown"), l = !r.found || o ? i.group_entity : [r.artist, n == null ? void 0 : n.name].filter(Boolean).join(" · "), a = h`
-      ${this.renderHeader(i.title, s)}
-      ${this.renderPlaylists({
+    const e = Date.now(), s = this.speakers(t, e), r = ve(t, i.group_entity), n = this._playlists.find((d) => d.uri === this._activeUri) ?? null, o = r.found && (r.state === "unavailable" || r.state === "unknown"), l = !r.found || o ? i.group_entity : [r.artist, n == null ? void 0 : n.name].filter(Boolean).join(" · "), a = this.renderHeader(i.title, s), c = this.renderPlaylists({
       layout: i.playlist_layout,
       count: i.playlist_count,
       columns: i.tile_columns,
@@ -2441,18 +2442,16 @@ let P = class extends V {
       status: this._plStatus,
       error: this._plError,
       activeUri: this._activeUri,
-      onPlay: (c) => this._play(c),
+      onPlay: (d) => this._play(d),
       onRetry: () => void this._ensurePlaylists(!0)
-    })}
-      ${this.renderNowBar(r, e, {
+    }), p = this.renderNowBar(r, e, {
       subtitle: l,
       onPrev: () => Me(t, i.group_entity),
       onPlayPause: () => Pe(t, i.group_entity),
       onNext: () => Ce(t, i.group_entity),
-      onSeek: (c) => Te(t, i.group_entity, c)
-    })}
-    `;
-    return this.renderShell(a, this.renderSpeakerSection(s), [this.renderPicker(s), this.renderToast()]);
+      onSeek: (d) => Te(t, i.group_entity, d)
+    });
+    return this.renderShell({ header: a, playlists: c, speakers: this.renderSpeakerSection(s), now: p }, [this.renderPicker(s), this.renderToast()]);
   }
 };
 I([

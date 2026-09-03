@@ -681,7 +681,7 @@ export const styles = css`
     display: contents;
   }
   /* vertical order: header, playlists, speakers, now-playing */
-  .col-left > .now {
+  .col-right > .now {
     order: 5;
   }
   .card.horizontal {
@@ -699,8 +699,9 @@ export const styles = css`
   .card.horizontal .col-left > .playlists-area {
     flex: 1 1 auto;
   }
-  .card.horizontal .col-left > .now {
-    margin-top: auto;
+  .card.horizontal .col-right > .now {
+    order: 0;
+    margin-bottom: 16px;
   }
   .card.horizontal .col-right > .speakers {
     margin-bottom: 0;
@@ -724,8 +725,9 @@ export const styles = css`
     .card.auto .col-left > .playlists-area {
       flex: 1 1 auto;
     }
-    .card.auto .col-left > .now {
-      margin-top: auto;
+    .card.auto .col-right > .now {
+      order: 0;
+      margin-bottom: 16px;
     }
     .card.auto .col-right > .speakers {
       margin-bottom: 0;

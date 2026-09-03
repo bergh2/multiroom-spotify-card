@@ -279,9 +279,8 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
     const unavailable = np.found && (np.state === 'unavailable' || np.state === 'unknown');
     const player = this._playerEntity;
 
-    const left = html`
-      ${this.renderHeader(cfg.title, speakers)}
-      ${this.renderPlaylists({
+    const header = this.renderHeader(cfg.title, speakers);
+    const playlists = this.renderPlaylists({
         layout: cfg.playlist_layout,
         count: cfg.playlist_count,
         columns: cfg.tile_columns,
@@ -292,8 +291,8 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
         activeUri: this._activeUri,
         onPlay: (pl) => this._play(pl),
         onRetry: () => void this._refresh(),
-      })}
-      ${this.renderNowBar(np, now, {
+      });
+    const nowBar = this.renderNowBar(np, now, {
         title: starting ? `Starting on ${cfg.device_name}…` : undefined,
         subtitle: starting
           ? `${startingName} · ${Math.round((now - starting.since) / 1000)} s`
@@ -306,9 +305,8 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
         onPlayPause: () => media.playPause(hass, player),
         onNext: () => media.nextTrack(hass, player),
         onSeek: (s) => media.seek(hass, player, s),
-      })}
-    `;
-    return this.renderShell(left, this.renderSpeakerSection(speakers), [this.renderPicker(speakers), this.renderToast()]);
+      });
+    return this.renderShell({ header, playlists, speakers: this.renderSpeakerSection(speakers), now: nowBar }, [this.renderPicker(speakers), this.renderToast()]);
   }
 }
 
