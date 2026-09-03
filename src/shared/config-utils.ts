@@ -100,6 +100,7 @@ export interface RawPlaylistView {
   playlist_sort?: unknown;
   playlist_count?: unknown;
   tile_columns?: unknown;
+  tile_columns_wide?: unknown;
 }
 
 export function normalizePlaylistView(card: string, raw: RawPlaylistView) {
@@ -107,11 +108,14 @@ export function normalizePlaylistView(card: string, raw: RawPlaylistView) {
   if (layout !== 'tiles' && layout !== 'list') fail(card, 'playlist_layout must be "tiles" or "list"');
   const sort = (raw.playlist_sort ?? 'last_played') as PlaylistSort;
   if (sort !== 'last_played' && sort !== 'play_count') fail(card, 'playlist_sort must be "last_played" or "play_count"');
+  const tileColumns = intInRange(card, raw.tile_columns, 'tile_columns', 2, 8, 3);
   return {
     playlist_layout: layout,
     playlist_sort: sort,
     playlist_count: intInRange(card, raw.playlist_count, 'playlist_count', 1, 50, layout === 'list' ? 10 : 6),
-    tile_columns: intInRange(card, raw.tile_columns, 'tile_columns', 2, 6, 3),
+    tile_columns: tileColumns,
+    /** playlists per row when the card renders two columns (horizontal / auto when wide) */
+    tile_columns_wide: intInRange(card, raw.tile_columns_wide, 'tile_columns_wide', 2, 8, tileColumns),
   };
 }
 

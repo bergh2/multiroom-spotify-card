@@ -189,6 +189,7 @@ export class SpotifyMediaCard extends SpeakerCardBase {
         layout: cfg.playlist_layout,
         count: cfg.playlist_count,
         columns: cfg.tile_columns,
+        columnsWide: cfg.tile_columns_wide,
         playlists: this._playlists,
         status: this._plStatus,
         error: this._plError,

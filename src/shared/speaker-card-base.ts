@@ -48,6 +48,8 @@ export interface PlaylistsView {
   layout: PlaylistLayout;
   count: number;
   columns: number;
+  /** columns used when the card renders two-column; defaults to `columns` */
+  columnsWide?: number;
   playlists: Playlist[];
   status: PlaylistStatus;
   error: string;
@@ -543,7 +545,7 @@ export abstract class SpeakerCardBase extends LitElement {
               </div>`,
             )}
           </div>`
-        : html`<div class="tiles" style=${styleMap({ '--cols': String(v.columns) })}>
+        : html`<div class="tiles" style=${styleMap({ '--cols': String(v.columns), '--cols-wide': String(v.columnsWide ?? v.columns) })}>
             ${items.map(
               (i) => html`<div class="tile">${this.renderArt('tile-art', null, `ph${i}`, i, true)}<span class="tile-name">&nbsp;</span></div>`,
             )}
@@ -561,7 +563,7 @@ export abstract class SpeakerCardBase extends LitElement {
         )}
       </div>`;
     }
-    return html`<div class="tiles" style=${styleMap({ '--cols': String(v.columns) })}>
+    return html`<div class="tiles" style=${styleMap({ '--cols': String(v.columns), '--cols-wide': String(v.columnsWide ?? v.columns) })}>
       ${list.map(
         (pl, i) => html`<button class=${classMap({ tile: true, active: pl.uri === v.activeUri })} title=${pl.name} @click=${() => v.onPlay(pl)}>
           <div class="tile-art-wrap" style="position:relative;width:100%">

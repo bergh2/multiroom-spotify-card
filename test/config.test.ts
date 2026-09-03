@@ -64,6 +64,8 @@ describe('normalizeConfig', () => {
     expect(() => normalizeConfig({ ...base, playlist_layout: 'grid' as never })).toThrow(/playlist_layout/);
     expect(() => normalizeConfig({ ...base, playlist_sort: 'name' as never })).toThrow(/playlist_sort/);
     expect(() => normalizeConfig({ ...base, playlist_count: 0 })).toThrow(/playlist_count/);
-    expect(() => normalizeConfig({ ...base, tile_columns: 7 })).toThrow(/tile_columns/);
+    expect(() => normalizeConfig({ ...base, tile_columns: 9 })).toThrow(/tile_columns/);
+    expect(normalizeConfig({ ...base, tile_columns: 3 }).tile_columns_wide).toBe(3);
+    expect(normalizeConfig({ ...base, tile_columns: 3, tile_columns_wide: 5 }).tile_columns_wide).toBe(5);
   });
 });

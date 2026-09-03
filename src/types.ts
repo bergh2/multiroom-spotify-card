@@ -12,6 +12,8 @@ export interface CardConfig {
   playlist_sort?: PlaylistSort;
   playlist_count?: number;
   tile_columns?: number;
+  /** playlists per row in the two-column layout (defaults to tile_columns) */
+  tile_columns_wide?: number;
   speaker_count?: number;
   title?: string;
   accent?: string;
@@ -32,6 +34,7 @@ export interface NormalizedConfig extends SpeakerSectionConfig {
   playlist_sort: PlaylistSort;
   playlist_count: number;
   tile_columns: number;
+  tile_columns_wide: number;
   title: string;
   accent: string;
   ma_config_entry_id: string;

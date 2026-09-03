@@ -705,6 +705,9 @@ export const styles = css`
   .card.horizontal .col-right > .speakers {
     margin-bottom: 0;
   }
+  .card.horizontal .tiles {
+    grid-template-columns: repeat(var(--cols-wide, var(--cols, 3)), 1fr);
+  }
   @container (min-width: 600px) {
     .card.auto {
       display: grid;
@@ -726,6 +729,9 @@ export const styles = css`
     }
     .card.auto .col-right > .speakers {
       margin-bottom: 0;
+    }
+    .card.auto .tiles {
+      grid-template-columns: repeat(var(--cols-wide, var(--cols, 3)), 1fr);
     }
   }
 

@@ -22,6 +22,8 @@ export interface SpCardConfig {
   playlist_sort?: PlaylistSort;
   playlist_count?: number;
   tile_columns?: number;
+  /** playlists per row in the two-column layout (defaults to tile_columns) */
+  tile_columns_wide?: number;
   speaker_count?: number;
   preset_tolerance?: number;
   /** key of the shared play history in HA user data */
@@ -45,6 +47,7 @@ export interface SpNormalizedConfig extends SpeakerSectionConfig {
   playlist_sort: PlaylistSort;
   playlist_count: number;
   tile_columns: number;
+  tile_columns_wide: number;
   history_key: string;
   fill_with_favorites: boolean;
   title: string;
