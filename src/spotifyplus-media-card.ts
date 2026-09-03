@@ -170,13 +170,19 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
       this._plStatus = 'ready';
       this._plError = '';
       if (store !== before) await sp.saveUserData(hass, cfg.history_key, store);
+      this._backoffMs = 0;
     } catch (e) {
       this._plStatus = 'error';
       this._plError = errorText(e);
+      // integration not ready yet (e.g. right after an HA restart) or rate limited: retry with backoff
+      this._backoffMs = Math.min(this._backoffMs ? this._backoffMs * 2 : 60_000, REFRESH_INTERVAL_MS);
+      this._scheduleRefresh(this._backoffMs);
     } finally {
       this._refreshing = false;
     }
   }
+
+  private _backoffMs = 0;
 
   /** Names and artwork for playlists we only know by uri: favourites first, then single lookups. */
   private async _fillMeta(hass: HomeAssistant, cfg: SpNormalizedConfig, store: HistoryStore): Promise<HistoryStore> {
