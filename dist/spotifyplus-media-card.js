@@ -2514,7 +2514,7 @@ let w = class extends G {
     return i.fill_with_favorites ? rs(t, this._favorites, i.playlist_count) : t;
   }
   async _ensureFavorites(i, t) {
-    Date.now() - this._favoritesAt < gs || (this._favorites = await Ze(i, t.spotifyplus_entity, 50), this._favoritesAt = Date.now());
+    Date.now() - this._favoritesAt < gs || (this._favorites = await Ze(i, t.spotifyplus_entity), this._favoritesAt = Date.now());
   }
   async _refresh() {
     const i = this._hass, t = this._config;

@@ -149,7 +149,7 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
 
   private async _ensureFavorites(hass: HomeAssistant, cfg: SpNormalizedConfig): Promise<void> {
     if (Date.now() - this._favoritesAt < FAVORITES_TTL_MS) return;
-    this._favorites = await sp.getPlaylistFavorites(hass, cfg.spotifyplus_entity, 50);
+    this._favorites = await sp.getPlaylistFavorites(hass, cfg.spotifyplus_entity);
     this._favoritesAt = Date.now();
   }
 
