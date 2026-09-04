@@ -12,6 +12,8 @@ export interface PlaylistMeta {
   uri: string;
   name: string;
   image: string | null;
+  /** Spotify user id of the playlist owner, when known */
+  ownerId?: string;
 }
 
 type Dict = Record<string, unknown>;
@@ -43,7 +45,11 @@ export function toPlaylistMeta(p: Dict): PlaylistMeta | null {
     const imgs = pick<Dict[]>(p, 'images', 'Images');
     if (Array.isArray(imgs) && imgs[0]) image = pick<string>(imgs[0], 'url', 'Url');
   }
-  return { uri, name, image: typeof image === 'string' && image ? image : null };
+  const owner = pick<Dict>(p, 'owner', 'Owner');
+  const ownerId = owner ? pick<string>(owner, 'id', 'Id') : undefined;
+  const meta: PlaylistMeta = { uri, name, image: typeof image === 'string' && image ? image : null };
+  if (typeof ownerId === 'string' && ownerId) meta.ownerId = ownerId;
+  return meta;
 }
 
 export function toRecentTracks(res: unknown): RecentTrack[] {
@@ -72,9 +78,9 @@ export async function getRecentTracks(hass: HomeAssistant, entity: string, after
   return toRecentTracks(res).sort((a, b) => b.playedAt - a.playedAt);
 }
 
-/** The user's followed/owned playlists with artwork. */
-export async function getPlaylistFavorites(hass: HomeAssistant, entity: string, limit = 50): Promise<PlaylistMeta[]> {
-  const res = await call(hass, 'get_playlist_favorites', { entity_id: entity, limit });
+/** All of the user's followed/owned playlists with artwork (paged by SpotifyPlus up to `limitTotal`). */
+export async function getPlaylistFavorites(hass: HomeAssistant, entity: string, limitTotal = 500): Promise<PlaylistMeta[]> {
+  const res = await call(hass, 'get_playlist_favorites', { entity_id: entity, limit: 50, limit_total: limitTotal });
   return items(unwrap(res)).map(toPlaylistMeta).filter((p): p is PlaylistMeta => !!p);
 }
 

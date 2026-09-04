@@ -9,12 +9,15 @@ import * as sp from './spotifyplus/services';
 import {
   EMPTY_HISTORY,
   applyMeta,
+  entriesToValidate,
   fillWithFavorites,
   isHistoryStore,
+  markValidated,
   mergeRecent,
   missingMeta,
   noteStarted,
   prune,
+  removeEntries,
   sortedPlaylists,
   type HistoryStore,
 } from './spotifyplus/history';
@@ -31,6 +34,8 @@ const REFRESH_AFTER_START_MS = 60_000;
 const REFRESH_INTERVAL_MS = 10 * 60_000;
 const FAVORITES_TTL_MS = 60 * 60_000;
 const MAX_META_LOOKUPS_PER_REFRESH = 5;
+const VALIDATE_EVERY_MS = 24 * 60 * 60_000;
+const MAX_VALIDATIONS_PER_REFRESH = 5;
 
 interface Starting {
   uri: string;
@@ -163,8 +168,9 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
       const before = this._history;
       const recent = await sp.getRecentTracks(hass, cfg.spotifyplus_entity, before.lastSeen);
       let store = mergeRecent(before, recent);
-      if (cfg.fill_with_favorites) await this._ensureFavorites(hass, cfg);
+      await this._ensureFavorites(hass, cfg);
       store = await this._fillMeta(hass, cfg, store);
+      store = await this._dropDeleted(hass, cfg, store);
       store = prune(store);
       this._history = store;
       this._plStatus = 'ready';
@@ -202,6 +208,36 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
       }
     }
     return applyMeta(store, found);
+  }
+
+  /**
+   * Spotify never deletes a playlist; "deleting" your own playlist just unfollows it, and it
+   * stays fetchable by id. So a history entry the user owns that is no longer among their
+   * playlists is a deleted one: drop it. Others' playlists played without following are kept.
+   * Checked once a day per entry, a few per refresh.
+   */
+  private async _dropDeleted(hass: HomeAssistant, cfg: SpNormalizedConfig, store: HistoryStore): Promise<HistoryStore> {
+    const userId = hass.states[cfg.spotifyplus_entity]?.attributes.sp_user_id;
+    if (typeof userId !== 'string' || !userId || !this._favorites.length) return store;
+    const now = Date.now();
+    const favUris = new Set(this._favorites.map((f) => f.uri));
+    const uris = entriesToValidate(store, favUris, now, VALIDATE_EVERY_MS, MAX_VALIDATIONS_PER_REFRESH);
+    const gone: string[] = [];
+    const kept: string[] = [];
+    for (const uri of uris) {
+      try {
+        const meta = await sp.getPlaylistMeta(hass, cfg.spotifyplus_entity, uri);
+        if (meta?.ownerId === userId) {
+          gone.push(uri);
+        } else {
+          kept.push(uri);
+          if (meta) store = applyMeta(store, [meta]);
+        }
+      } catch {
+        kept.push(uri); // unknown: check again tomorrow
+      }
+    }
+    return markValidated(removeEntries(store, gone), kept, now);
   }
 
   private _scheduleRefresh(ms: number): void {

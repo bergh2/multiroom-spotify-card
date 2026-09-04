@@ -1,5 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { EMPTY_HISTORY, applyMeta, fillWithFavorites, mergeRecent, missingMeta, noteStarted, prune, sortedPlaylists } from '../src/spotifyplus/history';
+import {
+  EMPTY_HISTORY,
+  applyMeta,
+  entriesToValidate,
+  fillWithFavorites,
+  markValidated,
+  mergeRecent,
+  missingMeta,
+  noteStarted,
+  prune,
+  removeEntries,
+  sortedPlaylists,
+} from '../src/spotifyplus/history';
 import { toPlaylistMeta, toRecentTracks } from '../src/spotifyplus/services';
 
 const t = (uri: string | null, playedAt: number, name = 'x') => ({ contextUri: uri, playedAt, trackName: name });
@@ -59,6 +71,25 @@ describe('meta and sorting', () => {
     expect(fillWithFavorites(played, favs, 2).map((p) => p.name)).toEqual(['Alpha', 'Beta']);
     expect(fillWithFavorites(played, favs, 10).map((p) => p.name)).toEqual(['Alpha', 'Beta', 'Gamma']);
     expect(fillWithFavorites([...played, { uri: B, name: 'Beta', image: null }], favs, 1).map((p) => p.name)).toEqual(['Alpha']);
+  });
+
+  it('validates only non-favourite entries that are due, and can remove or stamp them', () => {
+    const C = 'spotify:playlist:CCCCCCCCCCCCCCCCCCCCCC';
+    let s = mergeRecent(EMPTY_HISTORY, [t(A, 1), t(B, 2), t(C, 3)]);
+    const day = 86_400_000;
+    const now = 10 * day;
+    s = markValidated(s, [C], now - day / 2);
+    expect(entriesToValidate(s, new Set([A]), now, day, 10)).toEqual([B]);
+    expect(entriesToValidate(s, new Set(), now, day, 1)).toHaveLength(1);
+    const removed = removeEntries(s, [B]);
+    expect(Object.keys(removed.entries).sort()).toEqual([A, C].sort());
+    expect(removeEntries(s, ['spotify:playlist:nope'])).toBe(s);
+    expect(markValidated(s, [A], now).entries[A].validatedAt).toBe(now);
+  });
+
+  it('parses the playlist owner id', () => {
+    expect(toPlaylistMeta({ uri: A, name: 'Alpha', owner: { id: 'a.bergh' } })?.ownerId).toBe('a.bergh');
+    expect(toPlaylistMeta({ uri: A, name: 'Alpha' })?.ownerId).toBeUndefined();
   });
 
   it('prunes the least recently played entries', () => {

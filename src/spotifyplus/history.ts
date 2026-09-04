@@ -9,6 +9,8 @@ export interface HistoryEntry {
   lastPlayed: number;
   /** number of tracks played from this playlist since the history started */
   plays: number;
+  /** epoch ms of the last check that the playlist still exists / is still followed */
+  validatedAt?: number;
 }
 
 export interface HistoryStore {
@@ -94,6 +96,29 @@ export function fillWithFavorites(played: Playlist[], favorites: PlaylistMeta[],
     out.push({ uri: f.uri, name: f.name, image: f.image });
   }
   return out;
+}
+
+/** Entries not among the user's playlists whose existence has not been checked for `maxAgeMs`. */
+export function entriesToValidate(store: HistoryStore, favoriteUris: Set<string>, now: number, maxAgeMs: number, limit: number): string[] {
+  return Object.values(store.entries)
+    .filter((e) => !favoriteUris.has(e.uri) && (e.validatedAt === undefined || now - e.validatedAt > maxAgeMs))
+    .sort((a, b) => (a.validatedAt ?? 0) - (b.validatedAt ?? 0))
+    .slice(0, limit)
+    .map((e) => e.uri);
+}
+
+export function removeEntries(store: HistoryStore, uris: Iterable<string>): HistoryStore {
+  const entries = { ...store.entries };
+  let changed = false;
+  for (const uri of uris) if (uri in entries) { delete entries[uri]; changed = true; }
+  return changed ? { ...store, entries } : store;
+}
+
+export function markValidated(store: HistoryStore, uris: Iterable<string>, now: number): HistoryStore {
+  const entries = { ...store.entries };
+  let changed = false;
+  for (const uri of uris) if (entries[uri]) { entries[uri] = { ...entries[uri], validatedAt: now }; changed = true; }
+  return changed ? { ...store, entries } : store;
 }
 
 /** Keep the store bounded: drop the least recently played beyond `max` entries. */
