@@ -1637,7 +1637,7 @@ const Qt = "important", Ie = " !" + Qt, H = Kt(class extends Jt {
    * both end at width - 12 (pad) - 10 - 26 (value).
    */
   .speaker-row.master.panel {
-    padding: 9px 12px;
+    padding: 9px 11.5px; /* 12px minus the 0.5px border so the track starts exactly where the rows' do */
     margin: 0 0 4px;
     border-radius: 14px;
     border: 0.5px solid var(--line);
