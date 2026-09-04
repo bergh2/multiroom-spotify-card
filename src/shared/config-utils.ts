@@ -86,7 +86,7 @@ export function normalizeSpeakerSection(card: string, raw: RawSpeakerSection): S
   }
   const layout = (raw.layout ?? 'vertical') as CardLayout;
   if (!['vertical', 'horizontal', 'auto'].includes(layout)) fail(card, 'layout must be "vertical", "horizontal" or "auto"');
-  const masterStyle = (raw.master_style ?? 'plain') as MasterStyle;
+  const masterStyle = (raw.master_style ?? 'panel') as MasterStyle;
   if (!['plain', 'panel', 'tree'].includes(masterStyle)) fail(card, 'master_style must be "plain", "panel" or "tree"');
   return {
     layout,

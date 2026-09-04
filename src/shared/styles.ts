@@ -737,38 +737,18 @@ export const styles = css`
     }
   }
 
-  /* Master row: label + caption */
   .speaker-row.master .sp-name {
-    flex-basis: 112px;
     color: var(--text);
   }
-  .master-name {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    line-height: 1.15;
-    min-width: 0;
-  }
-  .master-caption {
-    font-family: var(--mono);
-    font-size: 9px;
-    font-weight: 400;
-    letter-spacing: 0.02em;
-    color: var(--text3);
-  }
-  .speaker-row.master.on .master-caption {
-    color: var(--text2);
-  }
 
-  /* Master style: panel (its own inset block) */
+  /* Master style: panel (its own inset block). Negative side margins keep the slider aligned with the rows. */
   .speaker-row.master.panel {
-    padding: 10px 12px;
-    margin: 0 0 10px;
+    padding: 9px 12px;
+    margin: 0 -10px 8px;
     border-radius: 14px;
     border: 0.5px solid var(--line);
-    border-bottom-width: 0.5px;
     background: var(--bar);
-    gap: 12px;
+    gap: 10px;
   }
   .speaker-row.master.panel .dot {
     width: 28px;
@@ -776,12 +756,15 @@ export const styles = css`
     border-radius: 9px;
     background: var(--chip2);
   }
+  .speaker-row.master.panel .sp-name {
+    flex-basis: 68px; /* 74px minus the 6px larger icon: track starts where the speaker tracks start */
+  }
   .speaker-row.master.panel.on .dot {
     background: var(--accent);
     color: #fff;
   }
   .speaker-row.master.panel .track {
-    height: 9px;
+    height: 8px;
   }
   .speaker-row.master.panel .sp-vol {
     font-size: 12px;

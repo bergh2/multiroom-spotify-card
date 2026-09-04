@@ -285,21 +285,21 @@ C.elementStyles = [], C.shadowRootOptions = { mode: "open" }, C[H("elementProper
  * SPDX-License-Identifier: BSD-3-Clause
  */
 const R = globalThis, ut = (i) => i, J = R.trustedTypes, ft = J ? J.createPolicy("lit-html", { createHTML: (i) => i }) : void 0, Ct = "$lit$", x = `lit$${Math.random().toFixed(9).slice(2)}$`, Mt = "?" + x, te = `<${Mt}>`, E = document, L = () => E.createComment(""), B = (i) => i === null || typeof i != "object" && typeof i != "function", at = Array.isArray, ee = (i) => at(i) || typeof (i == null ? void 0 : i[Symbol.iterator]) == "function", et = `[ 	
-\f\r]`, j = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, mt = /-->/g, yt = />/g, k = RegExp(`>|${et}(?:([^\\s"'>=/]+)(${et}*=${et}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), gt = /'/g, _t = /"/g, Tt = /^(?:script|style|textarea|title)$/i, Ut = (i) => (t, ...e) => ({ _$litType$: i, strings: t, values: e }), h = Ut(1), _ = Ut(2), w = Symbol.for("lit-noChange"), u = Symbol.for("lit-nothing"), vt = /* @__PURE__ */ new WeakMap(), A = E.createTreeWalker(E, 129);
+\f\r]`, I = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, mt = /-->/g, yt = />/g, k = RegExp(`>|${et}(?:([^\\s"'>=/]+)(${et}*=${et}*(?:[^ 	
+\f\r"'\`<>=]|("|')|))|$)`, "g"), _t = /'/g, gt = /"/g, Tt = /^(?:script|style|textarea|title)$/i, Ut = (i) => (t, ...e) => ({ _$litType$: i, strings: t, values: e }), h = Ut(1), g = Ut(2), w = Symbol.for("lit-noChange"), u = Symbol.for("lit-nothing"), vt = /* @__PURE__ */ new WeakMap(), A = E.createTreeWalker(E, 129);
 function zt(i, t) {
   if (!at(i) || !i.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return ft !== void 0 ? ft.createHTML(t) : t;
 }
 const se = (i, t) => {
   const e = i.length - 1, s = [];
-  let r, n = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = j;
+  let r, n = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = I;
   for (let l = 0; l < e; l++) {
     const a = i[l];
     let c, d, p = -1, f = 0;
-    for (; f < a.length && (o.lastIndex = f, d = o.exec(a), d !== null); ) f = o.lastIndex, o === j ? d[1] === "!--" ? o = mt : d[1] !== void 0 ? o = yt : d[2] !== void 0 ? (Tt.test(d[2]) && (r = RegExp("</" + d[2], "g")), o = k) : d[3] !== void 0 && (o = k) : o === k ? d[0] === ">" ? (o = r ?? j, p = -1) : d[1] === void 0 ? p = -2 : (p = o.lastIndex - d[2].length, c = d[1], o = d[3] === void 0 ? k : d[3] === '"' ? _t : gt) : o === _t || o === gt ? o = k : o === mt || o === yt ? o = j : (o = k, r = void 0);
-    const g = o === k && i[l + 1].startsWith("/>") ? " " : "";
-    n += o === j ? a + te : p >= 0 ? (s.push(c), a.slice(0, p) + Ct + a.slice(p) + x + g) : a + x + (p === -2 ? l : g);
+    for (; f < a.length && (o.lastIndex = f, d = o.exec(a), d !== null); ) f = o.lastIndex, o === I ? d[1] === "!--" ? o = mt : d[1] !== void 0 ? o = yt : d[2] !== void 0 ? (Tt.test(d[2]) && (r = RegExp("</" + d[2], "g")), o = k) : d[3] !== void 0 && (o = k) : o === k ? d[0] === ">" ? (o = r ?? I, p = -1) : d[1] === void 0 ? p = -2 : (p = o.lastIndex - d[2].length, c = d[1], o = d[3] === void 0 ? k : d[3] === '"' ? gt : _t) : o === gt || o === _t ? o = k : o === mt || o === yt ? o = I : (o = k, r = void 0);
+    const _ = o === k && i[l + 1].startsWith("/>") ? " " : "";
+    n += o === I ? a + te : p >= 0 ? (s.push(c), a.slice(0, p) + Ct + a.slice(p) + x + _) : a + x + (p === -2 ? l : _);
   }
   return [zt(i, n + (i[e] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), s];
 };
@@ -316,14 +316,14 @@ class q {
     for (; (r = A.nextNode()) !== null && a.length < l; ) {
       if (r.nodeType === 1) {
         if (r.hasAttributes()) for (const p of r.getAttributeNames()) if (p.endsWith(Ct)) {
-          const f = d[o++], g = r.getAttribute(p).split(x), F = /([.?@])?(.*)/.exec(f);
-          a.push({ type: 1, index: n, name: F[2], strings: g, ctor: F[1] === "." ? re : F[1] === "?" ? ne : F[1] === "@" ? oe : X }), r.removeAttribute(p);
+          const f = d[o++], _ = r.getAttribute(p).split(x), F = /([.?@])?(.*)/.exec(f);
+          a.push({ type: 1, index: n, name: F[2], strings: _, ctor: F[1] === "." ? re : F[1] === "?" ? ne : F[1] === "@" ? oe : X }), r.removeAttribute(p);
         } else p.startsWith(x) && (a.push({ type: 6, index: n }), r.removeAttribute(p));
         if (Tt.test(r.tagName)) {
           const p = r.textContent.split(x), f = p.length - 1;
           if (f > 0) {
             r.textContent = J ? J.emptyScript : "";
-            for (let g = 0; g < f; g++) r.append(p[g], L()), A.nextNode(), a.push({ type: 2, index: ++n });
+            for (let _ = 0; _ < f; _++) r.append(p[_], L()), A.nextNode(), a.push({ type: 2, index: ++n });
             r.append(p[f], L());
           }
         }
@@ -587,7 +587,7 @@ const ce = { attribute: !0, type: String, converter: Z, reflect: !1, hasChanged:
   }
   throw Error("Unsupported decorator location: " + s);
 };
-function It(i) {
+function jt(i) {
   return (t, e) => typeof e == "object" ? pe(i, t, e) : ((s, r, n) => {
     const o = r.hasOwnProperty(n);
     return r.constructor.createProperty(n, s), o ? Object.getOwnPropertyDescriptor(r, n) : void 0;
@@ -599,13 +599,13 @@ function It(i) {
  * SPDX-License-Identifier: BSD-3-Clause
  */
 function b(i) {
-  return It({ ...i, state: !0, attribute: !1 });
+  return jt({ ...i, state: !0, attribute: !1 });
 }
 const de = "oklch(0.62 0.16 285)";
 function m(i, t) {
   throw new Error(`${i}: ${t}`);
 }
-function jt(i) {
+function It(i) {
   return typeof i == "string" && /^media_player\.[a-z0-9_]+$/.test(i);
 }
 function D(i, t, e, s, r, n) {
@@ -618,7 +618,7 @@ function he(i, t) {
   const e = [], s = /* @__PURE__ */ new Set();
   for (const r of t) {
     const n = typeof r == "string" ? r : r == null ? void 0 : r.entity;
-    jt(n) || m(i, `speaker "${String(n)}" is not a media_player entity`), s.has(n) && m(i, `speaker ${n} is listed twice`), s.add(n);
+    It(n) || m(i, `speaker "${String(n)}" is not a media_player entity`), s.has(n) && m(i, `speaker ${n} is listed twice`), s.add(n);
     const o = typeof r == "object" && r && typeof r.name == "string" && r.name.trim() ? r.name.trim() : void 0;
     e.push(o ? { entity: n, name: o } : { entity: n });
   }
@@ -647,7 +647,7 @@ function fe(i, t) {
   r && !s.some((l) => l.name === r) && m(i, `default_preset "${r}" is not one of the presets`);
   const n = t.layout ?? "vertical";
   ["vertical", "horizontal", "auto"].includes(n) || m(i, 'layout must be "vertical", "horizontal" or "auto"');
-  const o = t.master_style ?? "plain";
+  const o = t.master_style ?? "panel";
   return ["plain", "panel", "tree"].includes(o) || m(i, 'master_style must be "plain", "panel" or "tree"'), {
     layout: n,
     master_label: Nt(t.master_label, "All"),
@@ -680,7 +680,7 @@ function Nt(i, t) {
 }
 const G = "spotify-media-card";
 function ye(i) {
-  return (!i || typeof i != "object") && m(G, "invalid configuration"), jt(i.group_entity) || m(G, "group_entity must be the Music Assistant media_player entity of your Cast group"), {
+  return (!i || typeof i != "object") && m(G, "invalid configuration"), It(i.group_entity) || m(G, "group_entity must be the Music Assistant media_player entity of your Cast group"), {
     type: i.type,
     group_entity: i.group_entity,
     ...fe(G, i),
@@ -690,15 +690,15 @@ function ye(i) {
     ma_config_entry_id: typeof i.ma_config_entry_id == "string" ? i.ma_config_entry_id.trim() : ""
   };
 }
-const ge = /* @__PURE__ */ new Set(["unavailable", "unknown"]);
-function _e(i, t, e) {
+const _e = /* @__PURE__ */ new Set(["unavailable", "unknown"]);
+function ge(i, t, e) {
   var r;
   const s = ((r = i.states[e]) == null ? void 0 : r.state) === "playing";
   return t.map((n) => {
-    const o = i.states[n.entity], l = (o == null ? void 0 : o.attributes) ?? {}, a = !!o && !ge.has(o.state), c = typeof l.volume_level == "number", d = c ? l.volume_level : 0, p = l.is_volume_muted === !0, f = a && !c, g = typeof l.friendly_name == "string" ? l.friendly_name : void 0;
+    const o = i.states[n.entity], l = (o == null ? void 0 : o.attributes) ?? {}, a = !!o && !_e.has(o.state), c = typeof l.volume_level == "number", d = c ? l.volume_level : 0, p = l.is_volume_muted === !0, f = a && !c, _ = typeof l.friendly_name == "string" ? l.friendly_name : void 0;
     return {
       entity: n.entity,
-      name: n.name ?? g ?? n.entity.replace("media_player.", ""),
+      name: n.name ?? _ ?? n.entity.replace("media_player.", ""),
       vol: Math.round(d * 100),
       on: a && !f && !p,
       available: a,
@@ -1613,38 +1613,18 @@ const Bt = "important", Ae = " !" + Bt, N = Dt(class extends Lt {
     }
   }
 
-  /* Master row: label + caption */
   .speaker-row.master .sp-name {
-    flex-basis: 112px;
     color: var(--text);
   }
-  .master-name {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    line-height: 1.15;
-    min-width: 0;
-  }
-  .master-caption {
-    font-family: var(--mono);
-    font-size: 9px;
-    font-weight: 400;
-    letter-spacing: 0.02em;
-    color: var(--text3);
-  }
-  .speaker-row.master.on .master-caption {
-    color: var(--text2);
-  }
 
-  /* Master style: panel (its own inset block) */
+  /* Master style: panel (its own inset block). Negative side margins keep the slider aligned with the rows. */
   .speaker-row.master.panel {
-    padding: 10px 12px;
-    margin: 0 0 10px;
+    padding: 9px 12px;
+    margin: 0 -10px 8px;
     border-radius: 14px;
     border: 0.5px solid var(--line);
-    border-bottom-width: 0.5px;
     background: var(--bar);
-    gap: 12px;
+    gap: 10px;
   }
   .speaker-row.master.panel .dot {
     width: 28px;
@@ -1652,12 +1632,15 @@ const Bt = "important", Ae = " !" + Bt, N = Dt(class extends Lt {
     border-radius: 9px;
     background: var(--chip2);
   }
+  .speaker-row.master.panel .sp-name {
+    flex-basis: 68px; /* 74px minus the 6px larger icon: track starts where the speaker tracks start */
+  }
   .speaker-row.master.panel.on .dot {
     background: var(--accent);
     color: #fff;
   }
   .speaker-row.master.panel .track {
-    height: 9px;
+    height: 8px;
   }
   .speaker-row.master.panel .sp-vol {
     font-size: 12px;
@@ -1774,15 +1757,15 @@ const Bt = "important", Ae = " !" + Bt, N = Dt(class extends Lt {
     }
   }
 `, v = {
-  airplay: _`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 15a9 9 0 0 1 16 0"></path><path d="M12 15l4 6H8l4-6z" fill="currentColor" stroke="none"></path></svg>`,
-  play: _`<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 2px;"><path d="M7 4.5 19.5 12 7 19.5z"></path></svg>`,
-  playSmall: _`<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5 19.5 12 7 19.5z"></path></svg>`,
-  pause: _`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4.2" height="15" rx="1.2"></rect><rect x="13.8" y="4.5" width="4.2" height="15" rx="1.2"></rect></svg>`,
-  prev: _`<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.2v14H6z"></path><path d="M19 5.6v12.8L9.6 12z"></path></svg>`,
-  next: _`<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M15.8 5H18v14h-2.2z"></path><path d="M5 5.6 14.4 12 5 18.4z"></path></svg>`,
-  speaker: _`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2.5" width="14" height="19" rx="3.5"></rect><circle cx="12" cy="15" r="3.2"></circle><circle cx="12" cy="7.5" r="1.1" fill="currentColor"></circle></svg>`,
-  volume: _`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"></path><path d="M16 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>`,
-  check: _`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4.5 4.5L19 7"></path></svg>`
+  airplay: g`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 15a9 9 0 0 1 16 0"></path><path d="M12 15l4 6H8l4-6z" fill="currentColor" stroke="none"></path></svg>`,
+  play: g`<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 2px;"><path d="M7 4.5 19.5 12 7 19.5z"></path></svg>`,
+  playSmall: g`<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5 19.5 12 7 19.5z"></path></svg>`,
+  pause: g`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4.2" height="15" rx="1.2"></rect><rect x="13.8" y="4.5" width="4.2" height="15" rx="1.2"></rect></svg>`,
+  prev: g`<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.2v14H6z"></path><path d="M19 5.6v12.8L9.6 12z"></path></svg>`,
+  next: g`<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M15.8 5H18v14h-2.2z"></path><path d="M5 5.6 14.4 12 5 18.4z"></path></svg>`,
+  speaker: g`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2.5" width="14" height="19" rx="3.5"></rect><circle cx="12" cy="15" r="3.2"></circle><circle cx="12" cy="7.5" r="1.1" fill="currentColor"></circle></svg>`,
+  volume: g`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"></path><path d="M16 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>`,
+  check: g`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4.5 4.5L19 7"></path></svg>`
 };
 function Ee(i, t) {
   if (i.position === null) return 0;
@@ -1891,7 +1874,7 @@ const K = 1500, kt = 150, lt = class lt extends T {
    */
   speakers(t, e) {
     const s = this.section;
-    return s ? _e(t, s.speakers, this.groupEntity ?? "").map((r) => {
+    return s ? ge(t, s.speakers, this.groupEntity ?? "").map((r) => {
       let n = r;
       if (!n.notInGroup) if (n.standby) {
         const l = this._intent.get(n.entity);
@@ -2091,17 +2074,14 @@ const K = 1500, kt = 150, lt = class lt extends T {
     `;
   }
   renderMaster(t) {
-    const e = this.section, s = xe(t), r = s !== null, n = t.filter((a) => a.available && !a.notInGroup).length, o = t.filter((a) => a.on).length, l = n === 0 ? "no speakers" : o === n ? `all ${n} speakers` : `${o} of ${n} speakers`;
+    const e = this.section, s = xe(t);
     return h`<div
-      class=${y({ "speaker-row": !0, master: !0, on: r, [e.master_style]: !0 })}
+      class=${y({ "speaker-row": !0, master: !0, on: s !== null, [e.master_style]: !0 })}
       title="Master volume: scales every speaker that is on"
     >
       <span class="dot" role="img" aria-label="Master volume">${v.volume}</span>
-      <div class="sp-name master-name">
-        <span class="ellipsis">${e.master_label}</span>
-        <span class="master-caption ellipsis">${l}</span>
-      </div>
-      <div class="track-hit" @pointerdown=${(a) => this._masterDragStart(a, t)}>
+      <span class="sp-name ellipsis">${e.master_label}</span>
+      <div class="track-hit" @pointerdown=${(n) => this._masterDragStart(n, t)}>
         <div class="track"><div class="fill" style=${N({ width: `${s ?? 0}%` })}></div></div>
       </div>
       <span class="sp-vol">${s ?? "–"}</span>
@@ -2241,11 +2221,11 @@ Vt([
 Vt([
   b()
 ], V.prototype, "_toast");
-const Oe = 300 * 1e3, At = /* @__PURE__ */ new Map(), Ie = {
+const Oe = 300 * 1e3, At = /* @__PURE__ */ new Map(), je = {
   last_played: "last_played_desc",
   play_count: "play_count_desc"
 };
-async function je(i) {
+async function Ie(i) {
   const t = await i.callWS({ type: "config_entries/get", domain: "music_assistant" }), e = Array.isArray(t) ? t : [], s = e.find((r) => r.state === "loaded") ?? e[0];
   if (!s) throw new Error("Music Assistant integration not found");
   return s.entry_id;
@@ -2284,7 +2264,7 @@ async function De(i, t) {
   const r = await i.callService(
     "music_assistant",
     "get_library",
-    { config_entry_id: t.entryId, media_type: "playlist", order_by: Ie[t.sort], limit: t.limit },
+    { config_entry_id: t.entryId, media_type: "playlist", order_by: je[t.sort], limit: t.limit },
     void 0,
     !1,
     !0
@@ -2420,7 +2400,7 @@ z.styles = Pt`
     }
   `;
 Q([
-  It({ attribute: !1 })
+  jt({ attribute: !1 })
 ], z.prototype, "hass", 2);
 Q([
   b()
@@ -2431,7 +2411,7 @@ Q([
 z = Q([
   Ot("spotify-media-card-editor")
 ], z);
-var Fe = Object.defineProperty, Ge = Object.getOwnPropertyDescriptor, I = (i, t, e, s) => {
+var Fe = Object.defineProperty, Ge = Object.getOwnPropertyDescriptor, j = (i, t, e, s) => {
   for (var r = s > 1 ? void 0 : s ? Ge(t, e) : t, n = i.length - 1, o; n >= 0; n--)
     (o = i[n]) && (r = (s ? o(t, e, r) : o(r)) || r);
   return s && r && Fe(t, e, r), r;
@@ -2487,7 +2467,7 @@ let P = class extends V {
     const s = ++this._fetchSeq;
     this._playlists.length || (this._plStatus = "loading");
     try {
-      this._entryId || (this._entryId = await je(t));
+      this._entryId || (this._entryId = await Ie(t));
       const r = await De(t, { entryId: this._entryId, sort: e.playlist_sort, limit: e.playlist_count, force: i });
       if (s !== this._fetchSeq) return;
       this._playlists = r, this._plStatus = "ready", this._plError = "";
@@ -2559,22 +2539,22 @@ let P = class extends V {
     return this.renderShell({ header: a, playlists: c, speakers: this.renderSpeakerSection(s), now: d }, [this.renderPicker(s), this.renderToast()]);
   }
 };
-I([
+j([
   b()
 ], P.prototype, "_config", 2);
-I([
+j([
   b()
 ], P.prototype, "_playlists", 2);
-I([
+j([
   b()
 ], P.prototype, "_plStatus", 2);
-I([
+j([
   b()
 ], P.prototype, "_plError", 2);
-I([
+j([
   b()
 ], P.prototype, "_activeUri", 2);
-P = I([
+P = j([
   Ot("spotify-media-card")
 ], P);
 window.customCards = window.customCards || [];

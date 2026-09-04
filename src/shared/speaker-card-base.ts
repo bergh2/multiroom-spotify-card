@@ -454,18 +454,12 @@ export abstract class SpeakerCardBase extends LitElement {
     const section = this.section!;
     const level = masterVolume(speakers);
     const on = level !== null;
-    const total = speakers.filter((s) => s.available && !s.notInGroup).length;
-    const onCount = speakers.filter((s) => s.on).length;
-    const caption = total === 0 ? 'no speakers' : onCount === total ? `all ${total} speakers` : `${onCount} of ${total} speakers`;
     return html`<div
       class=${classMap({ 'speaker-row': true, master: true, on, [section.master_style]: true })}
       title="Master volume: scales every speaker that is on"
     >
       <span class="dot" role="img" aria-label="Master volume">${icons.volume}</span>
-      <div class="sp-name master-name">
-        <span class="ellipsis">${section.master_label}</span>
-        <span class="master-caption ellipsis">${caption}</span>
-      </div>
+      <span class="sp-name ellipsis">${section.master_label}</span>
       <div class="track-hit" @pointerdown=${(e: PointerEvent) => this._masterDragStart(e, speakers)}>
         <div class="track"><div class="fill" style=${styleMap({ width: `${level ?? 0}%` })}></div></div>
       </div>
