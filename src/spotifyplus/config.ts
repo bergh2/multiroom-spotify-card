@@ -58,7 +58,7 @@ export interface SpNormalizedConfig extends SpeakerSectionConfig {
   accent: string;
 }
 
-const CARD = 'spotifyplus-media-card';
+const CARD = 'multiroom-spotify-card';
 
 export function normalizeSpConfig(raw: SpCardConfig): SpNormalizedConfig {
   if (!raw || typeof raw !== 'object') fail(CARD, 'invalid configuration');
@@ -80,7 +80,7 @@ export function normalizeSpConfig(raw: SpCardConfig): SpNormalizedConfig {
     shuffle: raw.shuffle === true,
     ...normalizeSpeakerSection(CARD, raw),
     ...normalizePlaylistView(CARD, raw),
-    history_key: normalizeText(raw.history_key, 'spotifyplus-media-card'),
+    history_key: normalizeText(raw.history_key, 'multiroom-spotify-card'),
     fill_with_favorites: raw.fill_with_favorites !== false,
     title: typeof raw.title === 'string' ? raw.title : 'Listening',
     accent: normalizeText(raw.accent, DEFAULT_ACCENT),

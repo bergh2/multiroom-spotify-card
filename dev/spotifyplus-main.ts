@@ -1,5 +1,5 @@
-import '../src/spotifyplus-media-card';
-import type { SpotifyPlusMediaCard } from '../src/spotifyplus-media-card';
+import '../src/multiroom-spotify-card';
+import type { MultiroomSpotifyCard } from '../src/multiroom-spotify-card';
 import type { SpCardConfig } from '../src/spotifyplus/config';
 import { createMockHass } from './mock-hass';
 
@@ -7,7 +7,7 @@ const hass = createMockHass({ backend: 'spotifyplus' });
 const stage = document.getElementById('stage')!;
 
 const config: SpCardConfig = {
-  type: 'custom:spotifyplus-media-card',
+  type: 'custom:multiroom-spotify-card',
   spotifyplus_entity: 'media_player.spotifyplus',
   cast_group_entity: 'media_player.alla',
   device_name: 'Alla',
@@ -34,7 +34,7 @@ if (params.get('master')) config.master_style = params.get('master') as SpCardCo
 if (params.get('label')) config.master_label = params.get('label')!;
 if (params.get('wide')) { stage.style.width = '760px'; document.getElementById('log')!.style.display = 'none'; }
 
-const card = document.createElement('spotifyplus-media-card') as SpotifyPlusMediaCard;
+const card = document.createElement('multiroom-spotify-card') as MultiroomSpotifyCard;
 card.setConfig(config);
 card.hass = hass;
 stage.appendChild(card);

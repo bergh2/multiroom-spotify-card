@@ -678,7 +678,7 @@ function me(i, t) {
 function Nt(i, t) {
   return typeof i == "string" && i.trim() ? i.trim() : t;
 }
-const G = "spotify-media-card";
+const G = "multiroom-spotify-card-ma";
 function ye(i) {
   return (!i || typeof i != "object") && m(G, "invalid configuration"), It(i.group_entity) || m(G, "group_entity must be the Music Assistant media_player entity of your Cast group"), {
     type: i.type,
@@ -2445,7 +2445,7 @@ Q([
   b()
 ], z.prototype, "_helpersLoaded", 2);
 z = Q([
-  Ot("spotify-media-card-editor")
+  Ot("multiroom-spotify-card-ma-editor")
 ], z);
 var Fe = Object.defineProperty, Ge = Object.getOwnPropertyDescriptor, j = (i, t, e, s) => {
   for (var r = s > 1 ? void 0 : s ? Ge(t, e) : t, n = i.length - 1, o; n >= 0; n--)
@@ -2470,7 +2470,7 @@ let P = class extends V {
   }
   // ---- HA card API -------------------------------------------------------
   static getConfigElement() {
-    return document.createElement("spotify-media-card-editor");
+    return document.createElement("multiroom-spotify-card-ma-editor");
   }
   static getStubConfig(i) {
     const t = Object.values((i == null ? void 0 : i.states) ?? {}).filter((n) => n.entity_id.startsWith("media_player.")), e = t.filter((n) => n.attributes.mass_player_id !== void 0), s = e.find((n) => n.attributes.mass_player_type === "group") ?? e[0], r = t.filter((n) => n.attributes.mass_player_id === void 0 && typeof n.attributes.volume_level == "number").slice(0, 4);
@@ -2528,7 +2528,7 @@ let P = class extends V {
     );
   }
   _storageKey(i) {
-    return `spotify-media-card:${i}`;
+    return `multiroom-spotify-card-ma:${i}`;
   }
   _loadActive(i) {
     try {
@@ -2591,15 +2591,15 @@ j([
   b()
 ], P.prototype, "_activeUri", 2);
 P = j([
-  Ot("spotify-media-card")
+  Ot("multiroom-spotify-card-ma")
 ], P);
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: "spotify-media-card",
-  name: "Spotify Media Card (Music Assistant)",
+  type: "multiroom-spotify-card-ma",
+  name: "Multiroom Spotify Card (Music Assistant)",
   description: "Start Spotify playlists on multi-room Chromecast speakers through Music Assistant.",
   preview: !1
 });
 export {
-  P as SpotifyMediaCard
+  P as MultiroomSpotifyCardMa
 };

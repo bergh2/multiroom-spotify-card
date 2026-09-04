@@ -3,7 +3,7 @@ import { normalizeConfig } from '../src/ma/config';
 import type { CardConfig } from '../src/types';
 
 const base: CardConfig = {
-  type: 'custom:spotify-media-card',
+  type: 'custom:multiroom-spotify-card-ma',
   group_entity: 'media_player.alla_2',
   speakers: ['media_player.a', { entity: 'media_player.b', name: 'Kök' }],
 };

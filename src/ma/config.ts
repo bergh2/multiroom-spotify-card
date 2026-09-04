@@ -3,7 +3,7 @@ import { DEFAULT_ACCENT, fail, isMediaPlayer, normalizePlaylistView, normalizeSp
 
 export { DEFAULT_ACCENT };
 
-const CARD = 'spotify-media-card';
+const CARD = 'multiroom-spotify-card-ma';
 
 export function normalizeConfig(raw: CardConfig): NormalizedConfig {
   if (!raw || typeof raw !== 'object') fail(CARD, 'invalid configuration');

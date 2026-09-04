@@ -1,5 +1,5 @@
-import '../src/spotify-media-card';
-import type { SpotifyMediaCard } from '../src/spotify-media-card';
+import '../src/multiroom-spotify-card-ma';
+import type { MultiroomSpotifyCardMa } from '../src/multiroom-spotify-card-ma';
 import type { CardConfig } from '../src/types';
 import { createMockHass } from './mock-hass';
 
@@ -7,7 +7,7 @@ const hass = createMockHass();
 const stage = document.getElementById('stage')!;
 
 const config: CardConfig = {
-  type: 'custom:spotify-media-card',
+  type: 'custom:multiroom-spotify-card-ma',
   group_entity: 'media_player.alla_2',
   speakers: [
     { entity: 'media_player.hk_citation_100_l', name: 'Living Room' },
@@ -28,7 +28,7 @@ const config: CardConfig = {
   default_preset: 'Standard',
 };
 
-const card = document.createElement('spotify-media-card') as SpotifyMediaCard;
+const card = document.createElement('multiroom-spotify-card-ma') as MultiroomSpotifyCardMa;
 card.setConfig(config);
 card.hass = hass;
 stage.appendChild(card);

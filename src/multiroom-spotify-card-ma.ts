@@ -11,15 +11,15 @@ import './ma/editor';
 
 declare global {
   interface HTMLElementTagNameMap {
-    'spotify-media-card': SpotifyMediaCard;
+    'multiroom-spotify-card-ma': MultiroomSpotifyCardMa;
   }
 }
 
 const REFETCH_AFTER_PLAY_MS = 3000;
 
 /** Music Assistant flavour: MA plays to its group entity, playlists come from MA's library. */
-@customElement('spotify-media-card')
-export class SpotifyMediaCard extends SpeakerCardBase {
+@customElement('multiroom-spotify-card-ma')
+export class MultiroomSpotifyCardMa extends SpeakerCardBase {
   @state() private _config?: NormalizedConfig;
   @state() private _playlists: Playlist[] = [];
   @state() private _plStatus: PlaylistStatus = 'idle';
@@ -43,7 +43,7 @@ export class SpotifyMediaCard extends SpeakerCardBase {
   // ---- HA card API -------------------------------------------------------
 
   static getConfigElement(): HTMLElement {
-    return document.createElement('spotify-media-card-editor');
+    return document.createElement('multiroom-spotify-card-ma-editor');
   }
 
   static getStubConfig(hass?: HomeAssistant): Partial<CardConfig> {
@@ -138,7 +138,7 @@ export class SpotifyMediaCard extends SpeakerCardBase {
   }
 
   private _storageKey(group: string): string {
-    return `spotify-media-card:${group}`;
+    return `multiroom-spotify-card-ma:${group}`;
   }
 
   private _loadActive(group: string): string | null {
@@ -209,8 +209,8 @@ export class SpotifyMediaCard extends SpeakerCardBase {
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: 'spotify-media-card',
-  name: 'Spotify Media Card (Music Assistant)',
+  type: 'multiroom-spotify-card-ma',
+  name: 'Multiroom Spotify Card (Music Assistant)',
   description: 'Start Spotify playlists on multi-room Chromecast speakers through Music Assistant.',
   preview: false,
 });

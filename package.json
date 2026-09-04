@@ -1,5 +1,5 @@
 {
-  "name": "spotify-media-cards",
+  "name": "multiroom-spotify-card",
   "version": "1.0.0",
   "description": "Home Assistant cards for starting Spotify playlists on multi-room Chromecast speakers (SpotifyPlus or Music Assistant), with per-speaker volume and mood presets",
   "type": "module",
@@ -9,8 +9,8 @@
     "build": "tsc --noEmit && node scripts/build.mjs",
     "test": "vitest run",
     "deploy": "npm run build && node scripts/deploy.mjs",
-    "deploy:ma": "npm run build && node scripts/deploy.mjs spotify-media-card",
-    "deploy:sp": "npm run build && node scripts/deploy.mjs spotifyplus-media-card"
+    "deploy:ma": "npm run build && node scripts/deploy.mjs multiroom-spotify-card-ma",
+    "deploy:sp": "npm run build && node scripts/deploy.mjs multiroom-spotify-card"
   },
   "license": "MIT",
   "devDependencies": {

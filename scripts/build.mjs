@@ -6,10 +6,10 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 export const CARDS = [
-  { name: 'spotify-media-card', entry: 'src/spotify-media-card.ts' },
-  { name: 'spotifyplus-media-card', entry: 'src/spotifyplus-media-card.ts' },
+  { name: 'multiroom-spotify-card-ma', entry: 'src/multiroom-spotify-card-ma.ts' },
+  { name: 'multiroom-spotify-card-spotifyplus', entry: 'src/multiroom-spotify-card.ts' },
   // combined bundle (both cards) that HACS installs
-  { name: 'spotify-media-cards', entry: 'src/spotify-media-cards.ts' },
+  { name: 'multiroom-spotify-card', entry: 'src/multiroom-spotify-card-bundle.ts' },
 ];
 
 for (const card of CARDS) {

@@ -59,8 +59,8 @@ const LABELS: Record<string, string> = {
   accent: 'Accent color (CSS)',
 };
 
-@customElement('spotifyplus-media-card-editor')
-export class SpotifyPlusMediaCardEditor extends LitElement {
+@customElement('multiroom-spotify-card-editor')
+export class MultiroomSpotifyCardEditor extends LitElement {
   static override styles = css`
     .hint {
       margin-top: 12px;

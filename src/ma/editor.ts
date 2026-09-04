@@ -62,8 +62,8 @@ const LABELS: Record<string, string> = {
   ma_config_entry_id: 'Music Assistant config entry id (optional)',
 };
 
-@customElement('spotify-media-card-editor')
-export class SpotifyMediaCardEditor extends LitElement {
+@customElement('multiroom-spotify-card-ma-editor')
+export class MultiroomSpotifyCardMaEditor extends LitElement {
   static override styles = css`
     .hint {
       margin-top: 12px;

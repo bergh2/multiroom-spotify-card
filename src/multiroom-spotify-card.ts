@@ -25,7 +25,7 @@ import './spotifyplus/editor';
 
 declare global {
   interface HTMLElementTagNameMap {
-    'spotifyplus-media-card': SpotifyPlusMediaCard;
+    'multiroom-spotify-card': MultiroomSpotifyCard;
   }
 }
 
@@ -47,8 +47,8 @@ interface Starting {
  * Cast group (so the Spotify app can take over), reads now-playing from the Cast
  * group entity, and builds "recently / most played" from Spotify's play history.
  */
-@customElement('spotifyplus-media-card')
-export class SpotifyPlusMediaCard extends SpeakerCardBase {
+@customElement('multiroom-spotify-card')
+export class MultiroomSpotifyCard extends SpeakerCardBase {
   @state() private _config?: SpNormalizedConfig;
   @state() private _history: HistoryStore = EMPTY_HISTORY;
   @state() private _plStatus: PlaylistStatus = 'idle';
@@ -88,7 +88,7 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
   // ---- HA card API -------------------------------------------------------
 
   static getConfigElement(): HTMLElement {
-    return document.createElement('spotifyplus-media-card-editor');
+    return document.createElement('multiroom-spotify-card-editor');
   }
 
   static getStubConfig(hass?: HomeAssistant): Partial<SpCardConfig> {
@@ -161,7 +161,12 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
     if (!Object.keys(this._history.entries).length) this._plStatus = 'loading';
     try {
       if (!this._historyLoaded) {
-        const stored = await sp.loadUserData<unknown>(hass, cfg.history_key);
+        let stored = await sp.loadUserData<unknown>(hass, cfg.history_key);
+        if (!isHistoryStore(stored) && cfg.history_key === 'multiroom-spotify-card') {
+          // migrate the history written by the card's previous name
+          stored = await sp.loadUserData<unknown>(hass, 'spotifyplus-media-card');
+          if (isHistoryStore(stored)) await sp.saveUserData(hass, cfg.history_key, stored);
+        }
         if (isHistoryStore(stored)) this._history = stored;
         this._historyLoaded = true;
       }
@@ -367,8 +372,8 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: 'spotifyplus-media-card',
-  name: 'Spotify Media Card (SpotifyPlus)',
+  type: 'multiroom-spotify-card',
+  name: 'Multiroom Spotify Card',
   description: 'Start Spotify playlists on a Chromecast speaker group as a Spotify Connect session, via SpotifyPlus.',
   preview: false,
 });

@@ -1,4 +1,4 @@
-# Spotify Media Cards for Home Assistant
+# Multiroom Spotify Card for Home Assistant
 
 Dashboard cards for starting Spotify playlists on a multi-room Chromecast
 speaker group, with a volume slider per room, a master volume, and mood
@@ -9,8 +9,8 @@ Two cards are included, sharing the same design:
 
 | Card | Starts music through | Choose it when |
 |---|---|---|
-| `custom:spotifyplus-media-card` | [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus): launches Spotify's own Cast receiver on the speaker group, so it is a real Spotify Connect session | You want to keep controlling the music from the Spotify app afterwards (recommended) |
-| `custom:spotify-media-card` | [Music Assistant](https://www.music-assistant.io/): MA streams the audio itself | You already run Music Assistant and don't need Spotify Connect |
+| `custom:multiroom-spotify-card` | [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus): launches Spotify's own Cast receiver on the speaker group, so it is a real Spotify Connect session | You want to keep controlling the music from the Spotify app afterwards (recommended) |
+| `custom:multiroom-spotify-card-ma` | [Music Assistant](https://www.music-assistant.io/): MA streams the audio itself | You already run Music Assistant and don't need Spotify Connect |
 
 ## Features
 
@@ -45,20 +45,20 @@ remove rooms in Google Home; the card follows.
 ### HACS (recommended)
 
 1. HACS → three-dot menu → **Custom repositories** → add this repository's URL with type **Dashboard**.
-2. Search for **Spotify Media Cards** and install it. HACS registers the resource `/hacsfiles/spotify-media-cards/spotify-media-cards.js`, which contains both cards.
+2. Search for **Multiroom Spotify Card** and install it. HACS registers the resource `/hacsfiles/multiroom-spotify-card/multiroom-spotify-card.js`, which contains both cards.
 3. Reload the browser, then add a card (search for "Spotify Media Card").
 
 ### Manual
 
-Copy `dist/spotify-media-cards.js` to `config/www/spotify-media-cards/` and add
-`/local/spotify-media-cards/spotify-media-cards.js` as a **JavaScript module**
+Copy `dist/multiroom-spotify-card.js` to `config/www/multiroom-spotify-card/` and add
+`/local/multiroom-spotify-card/multiroom-spotify-card.js` as a **JavaScript module**
 resource under Settings → Dashboards → Resources. (`dist/` also holds the two
 cards as separate files if you only want one.)
 
-## Configuration: `spotifyplus-media-card`
+## Configuration: `multiroom-spotify-card`
 
 ```yaml
-type: custom:spotifyplus-media-card
+type: custom:multiroom-spotify-card
 spotifyplus_entity: media_player.spotifyplus   # SpotifyPlus player (default)
 cast_group_entity: media_player.all            # Google Cast entity of the speaker group
 device_name: All                               # the group's name as Spotify Connect sees it
@@ -91,10 +91,10 @@ How it works:
 - **Playlists**: Spotify's "recently played" tracks are folded into a play history stored in Home Assistant user data under `history_key`. Both orders come from it, so "most played" keeps improving over time. Spotify only reports the last 50 tracks, so with `fill_with_favorites` (default on) the remaining slots show your own playlists until real plays take their place. Playlists you delete in Spotify disappear from the history within a day.
 - **API use**: refresh on load, a minute after a start, and every 10 minutes while the card is visible. Roughly 10 to 30 Spotify API calls per day. Spotify's developer quota is shared per developer account, so keep other integrations using the same account from polling aggressively.
 
-## Configuration: `spotify-media-card` (Music Assistant)
+## Configuration: `multiroom-spotify-card-ma` (Music Assistant)
 
 ```yaml
-type: custom:spotify-media-card
+type: custom:multiroom-spotify-card-ma
 group_entity: media_player.all_2             # Music Assistant entity of the Google Home group
 speakers:                                    # Google Cast entities (not the MA ones)
   - entity: media_player.living_room
@@ -148,7 +148,7 @@ Spotify app cannot control it.
 npm install
 npm run dev        # mock preview: /dev/index.html (MA) and /dev/spotifyplus.html (SpotifyPlus)
 npm test           # unit tests (vitest)
-npm run build      # dist/: both cards separately plus the combined spotify-media-cards.js
+npm run build      # dist/: both cards separately plus the combined multiroom-spotify-card.js
 npm run deploy     # build + copy to HA_WWW_ROOT/<card>/ (set HA_WWW_ROOT in .env.local)
 ```
 
@@ -157,6 +157,31 @@ npm run deploy     # build + copy to HA_WWW_ROOT/<card>/ (set HA_WWW_ROOT in .en
 parts; the `src/*-media-card*.ts` files are the bundle entries. The original
 design mockup and spec live in `docs/design/`.
 
+## Acknowledgements
+
+These cards are only a front end. The heavy lifting is done by two projects
+that deserve the credit:
+
+- [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus) by
+  [thlucas1](https://github.com/thlucas1), which talks to the Spotify Web API and
+  wakes Chromecast devices as Spotify Connect targets. The `multiroom-spotify-card`
+  requires it. If you use that card, consider supporting the integration.
+- [Music Assistant](https://www.music-assistant.io/) and its Home Assistant
+  integration, which the `multiroom-spotify-card-ma` card builds on.
+
+The visual design was inspired by the classic
+[spotify-card](https://github.com/custom-cards/spotify-card) and its maintained
+fork [spotify-card-v2](https://github.com/mikevanes/spotify-card-v2), which showed
+how good a playlist grid can look on a dashboard. No code was taken from either.
+
+## Disclaimer
+
+This project is not affiliated with, endorsed by, or sponsored by Spotify AB,
+Google, Harman, or the authors of SpotifyPlus and Music Assistant. Spotify is a
+trademark of Spotify AB; Chromecast, Google Home and Nest are trademarks of Google
+LLC. The cards use your own Spotify account through the integrations above and
+need a Spotify Premium subscription. Use at your own risk; see the license.
+
 ## License
 
-MIT
+[MIT](LICENSE)

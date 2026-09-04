@@ -6,7 +6,7 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const CARDS = ['spotify-media-card', 'spotifyplus-media-card'];
+const CARDS = ['multiroom-spotify-card-ma', 'multiroom-spotify-card-spotifyplus'];
 
 function envValue(name) {
   if (process.env[name]) return process.env[name];
@@ -19,7 +19,7 @@ function envValue(name) {
   return undefined;
 }
 
-// Backwards compatible: HA_WWW_DIR pointed at .../www/spotify-media-card
+// Backwards compatible: HA_WWW_DIR pointed at .../www/<card>
 let wwwRoot = envValue('HA_WWW_ROOT');
 if (!wwwRoot) {
   const legacy = envValue('HA_WWW_DIR');
