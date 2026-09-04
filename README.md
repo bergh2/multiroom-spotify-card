@@ -44,7 +44,7 @@ remove rooms in Google Home; the card follows.
 
 ### HACS (recommended)
 
-1. HACS → three-dot menu → **Custom repositories** → add this repository's URL with type **Dashboard**.
+1. HACS → three-dot menu → **Custom repositories** → add `https://github.com/bergh2/multiroom-spotify-card` with type **Dashboard**.
 2. Search for **Multiroom Spotify Card** and install it. HACS registers the resource `/hacsfiles/multiroom-spotify-card/multiroom-spotify-card.js`, which contains both cards.
 3. Reload the browser, then add a card (search for "Spotify Media Card").
 
