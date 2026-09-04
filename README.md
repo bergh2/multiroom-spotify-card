@@ -5,6 +5,8 @@ speaker group, with a volume slider per room, a master volume, and mood
 presets. One tap on a playlist, and the music plays in sync in every room you
 have switched on.
 
+![Multiroom Spotify Card in the two-column layout](docs/images/multiroom-spotify-card.png)
+
 Two cards are included, sharing the same design:
 
 | Card | Starts music through | Choose it when |

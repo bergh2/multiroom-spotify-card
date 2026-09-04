@@ -32,13 +32,26 @@ const config: SpCardConfig = {
 const params = new URLSearchParams(location.search);
 if (params.get('master')) config.master_style = params.get('master') as SpCardConfig['master_style'];
 if (params.get('label')) config.master_label = params.get('label')!;
-if (params.get('wide')) { stage.style.width = '760px'; document.getElementById('log')!.style.display = 'none'; }
+if (params.get('wide')) {
+  stage.style.width = '760px';
+  document.getElementById('log')!.style.display = 'none';
+  document.getElementById('controls')!.style.display = 'none';
+  document.getElementById('wrap')!.style.padding = '20px';
+}
 
 const card = document.createElement('multiroom-spotify-card') as MultiroomSpotifyCard;
 card.setConfig(config);
 card.hass = hass;
 stage.appendChild(card);
 hass.onChange((h) => (card.hass = h));
+// ?preset=Standard applies a preset once the mock has loaded (for screenshots)
+if (params.get('preset')) {
+  window.setTimeout(() => {
+    const c = card as unknown as { applyPreset: (s: unknown, p: unknown) => void; speakers: (h: unknown, t: number) => unknown; section: { presets: Array<{ name: string }> } };
+    const p = c.section.presets.find((x) => x.name === params.get('preset'));
+    if (p) c.applyPreset(c.speakers(card.hass, Date.now()), p);
+  }, 1500);
+}
 
 const btn = (id: string) => document.getElementById(id) as HTMLButtonElement;
 let dark = true;
