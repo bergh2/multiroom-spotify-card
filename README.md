@@ -126,7 +126,9 @@ play count as tracked by Music Assistant (only plays through MA count).
 | `speakers` | Google Cast entities, as strings or `{entity, name}`. Order is the display order. |
 | `presets` | List of `{name, levels}`. `levels` maps entity → volume 0–100; omitted speakers are muted. |
 | `default_preset` | Preset applied automatically when a playlist is started while the group is cold (not playing or paused) and no speaker has been touched since it went idle. Pause/resume and preset taps are never overridden. |
-| `master_volume` | Shows an "All" row above the speakers: the average of the unmuted speakers; dragging scales each of them proportionally. |
+| `master_volume` | Shows a master row above the speakers: the average of the unmuted speakers; dragging scales each of them proportionally. A caption shows how many speakers it currently drives. |
+| `master_label` | Name of the master row (default `All`), e.g. "Whole house". |
+| `master_style` | `plain` (a row like the speakers), `panel` (its own inset block above the speakers) or `tree` (speakers indented under it on a rail). |
 | `layout` | `vertical` (default): one column. `horizontal`: playlists and now-playing on the left, speakers on the right. `auto`: horizontal whenever the card is at least 600 px wide, so a tablet flips between one and two columns with its orientation. Give the card the full section width (`grid_options: { columns: full }`) for the two-column layouts. |
 | `playlist_layout`, `playlist_sort`, `playlist_count` | Playlist section layout, order and how many playlists are shown. |
 | `tile_columns`, `tile_columns_wide` | Playlists per row (2–8). `tile_columns` applies to the single-column layout, `tile_columns_wide` to the two-column layout (defaults to `tile_columns`). More per row means smaller artwork. |
