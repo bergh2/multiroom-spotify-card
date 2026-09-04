@@ -28,6 +28,12 @@ const config: SpCardConfig = {
   layout: 'auto',
 };
 
+// dev knobs: ?master=panel|tree&label=Hela%20huset&wide=1
+const params = new URLSearchParams(location.search);
+if (params.get('master')) config.master_style = params.get('master') as SpCardConfig['master_style'];
+if (params.get('label')) config.master_label = params.get('label')!;
+if (params.get('wide')) { stage.style.width = '760px'; document.getElementById('log')!.style.display = 'none'; }
+
 const card = document.createElement('spotifyplus-media-card') as SpotifyPlusMediaCard;
 card.setConfig(config);
 card.hass = hass;

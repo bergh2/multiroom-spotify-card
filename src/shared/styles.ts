@@ -737,6 +737,97 @@ export const styles = css`
     }
   }
 
+  /* Master row: label + caption */
+  .speaker-row.master .sp-name {
+    flex-basis: 112px;
+    color: var(--text);
+  }
+  .master-name {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    line-height: 1.15;
+    min-width: 0;
+  }
+  .master-caption {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    color: var(--text3);
+  }
+  .speaker-row.master.on .master-caption {
+    color: var(--text2);
+  }
+
+  /* Master style: panel (its own inset block) */
+  .speaker-row.master.panel {
+    padding: 10px 12px;
+    margin: 0 0 10px;
+    border-radius: 14px;
+    border: 0.5px solid var(--line);
+    border-bottom-width: 0.5px;
+    background: var(--bar);
+    gap: 12px;
+  }
+  .speaker-row.master.panel .dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    background: var(--chip2);
+  }
+  .speaker-row.master.panel.on .dot {
+    background: var(--accent);
+    color: #fff;
+  }
+  .speaker-row.master.panel .track {
+    height: 9px;
+  }
+  .speaker-row.master.panel .sp-vol {
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  /* Master style: tree (speakers indented under the master, joined by a rail) */
+  .speakers.style-tree .speaker-row.master {
+    border-bottom: none;
+    padding-bottom: 6px;
+    margin-bottom: 0;
+  }
+  .speakers.style-tree .speaker-row.master .dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: var(--chip2);
+  }
+  .speakers.style-tree .speaker-row.master.on .dot {
+    background: var(--accent);
+    color: #fff;
+  }
+  .speakers.style-tree .speaker-row.master .track {
+    height: 8px;
+  }
+  .speakers.style-tree .speaker-row:not(.master) {
+    margin-left: 12px;
+    padding-left: 14px;
+    border-left: 1.5px solid var(--line);
+    position: relative;
+  }
+  .speakers.style-tree .speaker-row:not(.master)::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 9px;
+    height: 1.5px;
+    background: var(--line);
+  }
+  .speakers.style-tree .speaker-row:not(.master):last-child {
+    border-left-color: transparent;
+    background:
+      linear-gradient(var(--line), var(--line)) no-repeat 0 0 / 1.5px 50%;
+  }
+
   .toast {
     position: absolute;
     left: 14px;

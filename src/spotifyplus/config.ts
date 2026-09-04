@@ -1,4 +1,4 @@
-import type { CardLayout, PlaylistLayout, PlaylistSort, PresetConfig, SpeakerConfig, SpeakerSectionConfig } from '../shared/types';
+import type { CardLayout, MasterStyle, PlaylistLayout, PlaylistSort, PresetConfig, SpeakerConfig, SpeakerSectionConfig } from '../shared/types';
 import { DEFAULT_ACCENT, fail, isMediaPlayer, normalizePlaylistView, normalizeSpeakerSection, normalizeText } from '../shared/config-utils';
 
 export type ControlVia = 'cast' | 'spotifyplus';
@@ -18,6 +18,10 @@ export interface SpCardConfig {
   presets?: PresetConfig[];
   default_preset?: string;
   master_volume?: boolean;
+  /** label of the master volume row (default "All") */
+  master_label?: string;
+  /** plain | panel | tree */
+  master_style?: MasterStyle;
   playlist_layout?: PlaylistLayout;
   playlist_sort?: PlaylistSort;
   playlist_count?: number;

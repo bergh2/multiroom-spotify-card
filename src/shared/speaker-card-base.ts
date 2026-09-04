@@ -443,7 +443,7 @@ export abstract class SpeakerCardBase extends LitElement {
             )}
           </div>`
         : nothing}
-      <div class="speakers">
+      <div class=${classMap({ speakers: true, [`style-${section.master_style}`]: section.master_volume })}>
         ${section.master_volume ? this.renderMaster(speakers) : nothing}
         ${shown.map((sp) => this.renderSpeaker(sp))}
       </div>
@@ -451,11 +451,21 @@ export abstract class SpeakerCardBase extends LitElement {
   }
 
   protected renderMaster(speakers: Speaker[]): TemplateResult {
+    const section = this.section!;
     const level = masterVolume(speakers);
     const on = level !== null;
-    return html`<div class=${classMap({ 'speaker-row': true, master: true, on })} title="Master volume: scales every speaker that is on">
+    const total = speakers.filter((s) => s.available && !s.notInGroup).length;
+    const onCount = speakers.filter((s) => s.on).length;
+    const caption = total === 0 ? 'no speakers' : onCount === total ? `all ${total} speakers` : `${onCount} of ${total} speakers`;
+    return html`<div
+      class=${classMap({ 'speaker-row': true, master: true, on, [section.master_style]: true })}
+      title="Master volume: scales every speaker that is on"
+    >
       <span class="dot" role="img" aria-label="Master volume">${icons.volume}</span>
-      <span class="sp-name ellipsis">All</span>
+      <div class="sp-name master-name">
+        <span class="ellipsis">${section.master_label}</span>
+        <span class="master-caption ellipsis">${caption}</span>
+      </div>
       <div class="track-hit" @pointerdown=${(e: PointerEvent) => this._masterDragStart(e, speakers)}>
         <div class="track"><div class="fill" style=${styleMap({ width: `${level ?? 0}%` })}></div></div>
       </div>

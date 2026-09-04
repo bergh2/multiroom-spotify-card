@@ -86,6 +86,12 @@ export interface SpeakerSectionConfig {
   speaker_count: number;
   preset_tolerance: number;
   master_volume: boolean;
+  /** label of the master volume row (default "All") */
+  master_label: string;
+  /** plain: a row like the speakers; panel: its own inset panel; tree: speakers indented under it */
+  master_style: MasterStyle;
   default_preset: string;
   layout: CardLayout;
 }
+
+export type MasterStyle = 'plain' | 'panel' | 'tree';
