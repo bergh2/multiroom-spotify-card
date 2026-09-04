@@ -286,7 +286,7 @@ C.elementStyles = [], C.shadowRootOptions = { mode: "open" }, C[H("elementProper
  */
 const R = globalThis, ut = (i) => i, J = R.trustedTypes, ft = J ? J.createPolicy("lit-html", { createHTML: (i) => i }) : void 0, Ct = "$lit$", x = `lit$${Math.random().toFixed(9).slice(2)}$`, Mt = "?" + x, te = `<${Mt}>`, E = document, L = () => E.createComment(""), B = (i) => i === null || typeof i != "object" && typeof i != "function", at = Array.isArray, ee = (i) => at(i) || typeof (i == null ? void 0 : i[Symbol.iterator]) == "function", et = `[ 	
 \f\r]`, I = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, mt = /-->/g, yt = />/g, k = RegExp(`>|${et}(?:([^\\s"'>=/]+)(${et}*=${et}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), _t = /'/g, gt = /"/g, Tt = /^(?:script|style|textarea|title)$/i, Ut = (i) => (t, ...e) => ({ _$litType$: i, strings: t, values: e }), h = Ut(1), g = Ut(2), w = Symbol.for("lit-noChange"), u = Symbol.for("lit-nothing"), vt = /* @__PURE__ */ new WeakMap(), A = E.createTreeWalker(E, 129);
+\f\r"'\`<>=]|("|')|))|$)`, "g"), gt = /'/g, _t = /"/g, Tt = /^(?:script|style|textarea|title)$/i, Ut = (i) => (t, ...e) => ({ _$litType$: i, strings: t, values: e }), h = Ut(1), _ = Ut(2), w = Symbol.for("lit-noChange"), u = Symbol.for("lit-nothing"), vt = /* @__PURE__ */ new WeakMap(), A = E.createTreeWalker(E, 129);
 function zt(i, t) {
   if (!at(i) || !i.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return ft !== void 0 ? ft.createHTML(t) : t;
@@ -297,9 +297,9 @@ const se = (i, t) => {
   for (let l = 0; l < e; l++) {
     const a = i[l];
     let c, d, p = -1, f = 0;
-    for (; f < a.length && (o.lastIndex = f, d = o.exec(a), d !== null); ) f = o.lastIndex, o === I ? d[1] === "!--" ? o = mt : d[1] !== void 0 ? o = yt : d[2] !== void 0 ? (Tt.test(d[2]) && (r = RegExp("</" + d[2], "g")), o = k) : d[3] !== void 0 && (o = k) : o === k ? d[0] === ">" ? (o = r ?? I, p = -1) : d[1] === void 0 ? p = -2 : (p = o.lastIndex - d[2].length, c = d[1], o = d[3] === void 0 ? k : d[3] === '"' ? gt : _t) : o === gt || o === _t ? o = k : o === mt || o === yt ? o = I : (o = k, r = void 0);
-    const _ = o === k && i[l + 1].startsWith("/>") ? " " : "";
-    n += o === I ? a + te : p >= 0 ? (s.push(c), a.slice(0, p) + Ct + a.slice(p) + x + _) : a + x + (p === -2 ? l : _);
+    for (; f < a.length && (o.lastIndex = f, d = o.exec(a), d !== null); ) f = o.lastIndex, o === I ? d[1] === "!--" ? o = mt : d[1] !== void 0 ? o = yt : d[2] !== void 0 ? (Tt.test(d[2]) && (r = RegExp("</" + d[2], "g")), o = k) : d[3] !== void 0 && (o = k) : o === k ? d[0] === ">" ? (o = r ?? I, p = -1) : d[1] === void 0 ? p = -2 : (p = o.lastIndex - d[2].length, c = d[1], o = d[3] === void 0 ? k : d[3] === '"' ? _t : gt) : o === _t || o === gt ? o = k : o === mt || o === yt ? o = I : (o = k, r = void 0);
+    const g = o === k && i[l + 1].startsWith("/>") ? " " : "";
+    n += o === I ? a + te : p >= 0 ? (s.push(c), a.slice(0, p) + Ct + a.slice(p) + x + g) : a + x + (p === -2 ? l : g);
   }
   return [zt(i, n + (i[e] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), s];
 };
@@ -316,14 +316,14 @@ class q {
     for (; (r = A.nextNode()) !== null && a.length < l; ) {
       if (r.nodeType === 1) {
         if (r.hasAttributes()) for (const p of r.getAttributeNames()) if (p.endsWith(Ct)) {
-          const f = d[o++], _ = r.getAttribute(p).split(x), F = /([.?@])?(.*)/.exec(f);
-          a.push({ type: 1, index: n, name: F[2], strings: _, ctor: F[1] === "." ? re : F[1] === "?" ? ne : F[1] === "@" ? oe : X }), r.removeAttribute(p);
+          const f = d[o++], g = r.getAttribute(p).split(x), F = /([.?@])?(.*)/.exec(f);
+          a.push({ type: 1, index: n, name: F[2], strings: g, ctor: F[1] === "." ? re : F[1] === "?" ? ne : F[1] === "@" ? oe : X }), r.removeAttribute(p);
         } else p.startsWith(x) && (a.push({ type: 6, index: n }), r.removeAttribute(p));
         if (Tt.test(r.tagName)) {
           const p = r.textContent.split(x), f = p.length - 1;
           if (f > 0) {
             r.textContent = J ? J.emptyScript : "";
-            for (let _ = 0; _ < f; _++) r.append(p[_], L()), A.nextNode(), a.push({ type: 2, index: ++n });
+            for (let g = 0; g < f; g++) r.append(p[g], L()), A.nextNode(), a.push({ type: 2, index: ++n });
             r.append(p[f], L());
           }
         }
@@ -690,15 +690,15 @@ function ye(i) {
     ma_config_entry_id: typeof i.ma_config_entry_id == "string" ? i.ma_config_entry_id.trim() : ""
   };
 }
-const _e = /* @__PURE__ */ new Set(["unavailable", "unknown"]);
-function ge(i, t, e) {
+const ge = /* @__PURE__ */ new Set(["unavailable", "unknown"]);
+function _e(i, t, e) {
   var r;
   const s = ((r = i.states[e]) == null ? void 0 : r.state) === "playing";
   return t.map((n) => {
-    const o = i.states[n.entity], l = (o == null ? void 0 : o.attributes) ?? {}, a = !!o && !_e.has(o.state), c = typeof l.volume_level == "number", d = c ? l.volume_level : 0, p = l.is_volume_muted === !0, f = a && !c, _ = typeof l.friendly_name == "string" ? l.friendly_name : void 0;
+    const o = i.states[n.entity], l = (o == null ? void 0 : o.attributes) ?? {}, a = !!o && !ge.has(o.state), c = typeof l.volume_level == "number", d = c ? l.volume_level : 0, p = l.is_volume_muted === !0, f = a && !c, g = typeof l.friendly_name == "string" ? l.friendly_name : void 0;
     return {
       entity: n.entity,
-      name: n.name ?? _ ?? n.entity.replace("media_player.", ""),
+      name: n.name ?? g ?? n.entity.replace("media_player.", ""),
       vol: Math.round(d * 100),
       on: a && !f && !p,
       available: a,
@@ -1617,10 +1617,17 @@ const Bt = "important", Ae = " !" + Bt, N = Dt(class extends Lt {
     color: var(--text);
   }
 
-  /* Master style: panel (its own inset block). Negative side margins keep the slider aligned with the rows. */
+  /*
+   * Master style: panel. The panel spans the full row width (same as the preset
+   * buttons). The rows under it are indented onto a rail that starts at the
+   * master icon, and their tracks start/end at the same x as the panel track:
+   *   panel:  12 (pad) + 28 (icon) + 10 + 95 (name) + 10 = 155
+   *   rows:   39 (pad) + 22 (icon) + 10 + 74 (name) + 10 = 155
+   * both end at width - 12 (pad) - 10 - 26 (value).
+   */
   .speaker-row.master.panel {
     padding: 9px 12px;
-    margin: 0 -10px 8px;
+    margin: 0 0 4px;
     border-radius: 14px;
     border: 0.5px solid var(--line);
     background: var(--bar);
@@ -1632,19 +1639,48 @@ const Bt = "important", Ae = " !" + Bt, N = Dt(class extends Lt {
     border-radius: 9px;
     background: var(--chip2);
   }
-  .speaker-row.master.panel .sp-name {
-    flex-basis: 68px; /* 74px minus the 6px larger icon: track starts where the speaker tracks start */
-  }
   .speaker-row.master.panel.on .dot {
     background: var(--accent);
     color: #fff;
   }
+  .speaker-row.master.panel .sp-name {
+    flex-basis: 95px;
+  }
   .speaker-row.master.panel .track {
-    height: 8px;
+    height: 10px;
   }
   .speaker-row.master.panel .sp-vol {
     font-size: 12px;
     color: var(--text);
+  }
+  .speakers.style-panel .speaker-row:not(.master) {
+    position: relative;
+    padding-left: 39px;
+    padding-right: 12px;
+  }
+  .speakers.style-panel .speaker-row:not(.master)::before {
+    content: "";
+    position: absolute;
+    left: 26px;
+    top: -1px;
+    bottom: -1px;
+    width: 1.5px;
+    background: var(--line);
+  }
+  .speakers.style-panel .speaker-row.master.panel + .speaker-row::before {
+    top: -5px;
+  }
+  .speakers.style-panel .speaker-row:not(.master):last-child::before {
+    bottom: 50%;
+  }
+  .speakers.style-panel .speaker-row:not(.master)::after {
+    content: "";
+    position: absolute;
+    left: 26px;
+    top: 50%;
+    width: 9px;
+    height: 1.5px;
+    background: var(--line);
   }
 
   /* Master style: tree (speakers indented under the master, joined by a rail) */
@@ -1757,15 +1793,15 @@ const Bt = "important", Ae = " !" + Bt, N = Dt(class extends Lt {
     }
   }
 `, v = {
-  airplay: g`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 15a9 9 0 0 1 16 0"></path><path d="M12 15l4 6H8l4-6z" fill="currentColor" stroke="none"></path></svg>`,
-  play: g`<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 2px;"><path d="M7 4.5 19.5 12 7 19.5z"></path></svg>`,
-  playSmall: g`<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5 19.5 12 7 19.5z"></path></svg>`,
-  pause: g`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4.2" height="15" rx="1.2"></rect><rect x="13.8" y="4.5" width="4.2" height="15" rx="1.2"></rect></svg>`,
-  prev: g`<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.2v14H6z"></path><path d="M19 5.6v12.8L9.6 12z"></path></svg>`,
-  next: g`<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M15.8 5H18v14h-2.2z"></path><path d="M5 5.6 14.4 12 5 18.4z"></path></svg>`,
-  speaker: g`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2.5" width="14" height="19" rx="3.5"></rect><circle cx="12" cy="15" r="3.2"></circle><circle cx="12" cy="7.5" r="1.1" fill="currentColor"></circle></svg>`,
-  volume: g`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"></path><path d="M16 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>`,
-  check: g`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4.5 4.5L19 7"></path></svg>`
+  airplay: _`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 15a9 9 0 0 1 16 0"></path><path d="M12 15l4 6H8l4-6z" fill="currentColor" stroke="none"></path></svg>`,
+  play: _`<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 2px;"><path d="M7 4.5 19.5 12 7 19.5z"></path></svg>`,
+  playSmall: _`<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5 19.5 12 7 19.5z"></path></svg>`,
+  pause: _`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4.2" height="15" rx="1.2"></rect><rect x="13.8" y="4.5" width="4.2" height="15" rx="1.2"></rect></svg>`,
+  prev: _`<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.2v14H6z"></path><path d="M19 5.6v12.8L9.6 12z"></path></svg>`,
+  next: _`<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M15.8 5H18v14h-2.2z"></path><path d="M5 5.6 14.4 12 5 18.4z"></path></svg>`,
+  speaker: _`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2.5" width="14" height="19" rx="3.5"></rect><circle cx="12" cy="15" r="3.2"></circle><circle cx="12" cy="7.5" r="1.1" fill="currentColor"></circle></svg>`,
+  volume: _`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"></path><path d="M16 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>`,
+  check: _`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4.5 4.5L19 7"></path></svg>`
 };
 function Ee(i, t) {
   if (i.position === null) return 0;
@@ -1874,7 +1910,7 @@ const K = 1500, kt = 150, lt = class lt extends T {
    */
   speakers(t, e) {
     const s = this.section;
-    return s ? ge(t, s.speakers, this.groupEntity ?? "").map((r) => {
+    return s ? _e(t, s.speakers, this.groupEntity ?? "").map((r) => {
       let n = r;
       if (!n.notInGroup) if (n.standby) {
         const l = this._intent.get(n.entity);

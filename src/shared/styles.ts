@@ -741,10 +741,17 @@ export const styles = css`
     color: var(--text);
   }
 
-  /* Master style: panel (its own inset block). Negative side margins keep the slider aligned with the rows. */
+  /*
+   * Master style: panel. The panel spans the full row width (same as the preset
+   * buttons). The rows under it are indented onto a rail that starts at the
+   * master icon, and their tracks start/end at the same x as the panel track:
+   *   panel:  12 (pad) + 28 (icon) + 10 + 95 (name) + 10 = 155
+   *   rows:   39 (pad) + 22 (icon) + 10 + 74 (name) + 10 = 155
+   * both end at width - 12 (pad) - 10 - 26 (value).
+   */
   .speaker-row.master.panel {
     padding: 9px 12px;
-    margin: 0 -10px 8px;
+    margin: 0 0 4px;
     border-radius: 14px;
     border: 0.5px solid var(--line);
     background: var(--bar);
@@ -756,19 +763,48 @@ export const styles = css`
     border-radius: 9px;
     background: var(--chip2);
   }
-  .speaker-row.master.panel .sp-name {
-    flex-basis: 68px; /* 74px minus the 6px larger icon: track starts where the speaker tracks start */
-  }
   .speaker-row.master.panel.on .dot {
     background: var(--accent);
     color: #fff;
   }
+  .speaker-row.master.panel .sp-name {
+    flex-basis: 95px;
+  }
   .speaker-row.master.panel .track {
-    height: 8px;
+    height: 10px;
   }
   .speaker-row.master.panel .sp-vol {
     font-size: 12px;
     color: var(--text);
+  }
+  .speakers.style-panel .speaker-row:not(.master) {
+    position: relative;
+    padding-left: 39px;
+    padding-right: 12px;
+  }
+  .speakers.style-panel .speaker-row:not(.master)::before {
+    content: "";
+    position: absolute;
+    left: 26px;
+    top: -1px;
+    bottom: -1px;
+    width: 1.5px;
+    background: var(--line);
+  }
+  .speakers.style-panel .speaker-row.master.panel + .speaker-row::before {
+    top: -5px;
+  }
+  .speakers.style-panel .speaker-row:not(.master):last-child::before {
+    bottom: 50%;
+  }
+  .speakers.style-panel .speaker-row:not(.master)::after {
+    content: "";
+    position: absolute;
+    left: 26px;
+    top: 50%;
+    width: 9px;
+    height: 1.5px;
+    background: var(--line);
   }
 
   /* Master style: tree (speakers indented under the master, joined by a rail) */
