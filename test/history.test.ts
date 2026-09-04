@@ -88,7 +88,7 @@ describe('meta and sorting', () => {
   });
 
   it('parses the playlist owner id', () => {
-    expect(toPlaylistMeta({ uri: A, name: 'Alpha', owner: { id: 'a.bergh' } })?.ownerId).toBe('a.bergh');
+    expect(toPlaylistMeta({ uri: A, name: 'Alpha', owner: { id: 'alice' } })?.ownerId).toBe('alice');
     expect(toPlaylistMeta({ uri: A, name: 'Alpha' })?.ownerId).toBeUndefined();
   });
 

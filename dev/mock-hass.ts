@@ -240,7 +240,7 @@ export function createMockHass(opts: MockOptions = {}): MockHass {
       async callWS<T>(msg: Record<string, unknown>): Promise<T> {
         log(`ws ${JSON.stringify(msg).slice(0, 160)}`);
         if (msg.type === 'config_entries/get') {
-          return [{ entry_id: '01M0ESA7FG5614S4DEYHG8Y15E', domain: 'music_assistant', state: 'loaded', title: 'Music Assistant' }] as T;
+          return [{ entry_id: '01EXAMPLEENTRYID0000000000', domain: 'music_assistant', state: 'loaded', title: 'Music Assistant' }] as T;
         }
         if (msg.type === 'frontend/get_user_data') return { value: userData.get(String(msg.key)) ?? null } as T;
         if (msg.type === 'frontend/set_user_data') {

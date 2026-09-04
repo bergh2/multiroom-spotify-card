@@ -8,6 +8,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const CARDS = [
   { name: 'spotify-media-card', entry: 'src/spotify-media-card.ts' },
   { name: 'spotifyplus-media-card', entry: 'src/spotifyplus-media-card.ts' },
+  // combined bundle (both cards) that HACS installs
+  { name: 'spotify-media-cards', entry: 'src/spotify-media-cards.ts' },
 ];
 
 for (const card of CARDS) {

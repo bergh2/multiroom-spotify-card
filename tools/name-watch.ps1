@@ -1,6 +1,11 @@
-﻿# Polls the local Cast setup API of the HK Citation speakers and logs every name change.
+# Polls the local Cast setup API of one or more speakers and logs every name change.
+# Usage: powershell -File tools\name-watch.ps1 -Ips 192.168.1.10,192.168.1.11
+# Handy when a Google Home rename keeps reverting: the log shows the minute it flips.
+param([string[]]$Ips = @())
+if (-not $Ips.Count) { Write-Error 'Pass -Ips with one or more speaker addresses'; exit 1 }
 $log = Join-Path $PSScriptRoot 'name-watch.log'
-$devices = @{ '192.168.10.69' = ''; '192.168.10.154' = '' }
+$devices = @{}
+foreach ($ip in $Ips) { $devices[$ip] = '' }
 Add-Content $log ("{0}  watch started" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'))
 while ($true) {
   foreach ($ip in @($devices.Keys)) {
@@ -18,4 +23,3 @@ while ($true) {
   }
   Start-Sleep -Seconds 60
 }
-
