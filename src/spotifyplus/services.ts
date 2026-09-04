@@ -95,9 +95,29 @@ export const playContext = (hass: HomeAssistant, entity: string, contextUri: str
     shuffle,
   });
 
-/** Force SpotifyPlus to rediscover Spotify Connect / Cast devices (fixes stale host addresses). */
+/** Force SpotifyPlus to rediscover Spotify Connect / Cast devices. Not enough for a stale Cast group host; see reloadIntegration. */
 export const refreshDevices = (hass: HomeAssistant, entity: string) =>
   hass.callService('spotifyplus', 'get_spotify_connect_devices', { entity_id: entity, refresh: true }, undefined, false, true);
+
+/**
+ * Reload the SpotifyPlus config entry (admin only). This is the one thing that clears a
+ * stale Cast group address after the group re-forms. Resolves once the player entity is
+ * back, or throws if the user cannot administer config entries.
+ */
+export async function reloadIntegration(hass: HomeAssistant, entity: string, timeoutMs = 30_000): Promise<void> {
+  if (!hass.callApi) throw new Error('config entry reload not available');
+  const entries = await hass.callWS<Array<{ entry_id: string; domain: string }>>({ type: 'config_entries/get', domain: 'spotifyplus' });
+  const entry = entries?.[0];
+  if (!entry) throw new Error('SpotifyPlus config entry not found');
+  await hass.callApi('POST', `config/config_entries/entry/${entry.entry_id}/reload`);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 1000));
+    const st = hass.states[entity]?.state;
+    if (st && st !== 'unavailable' && st !== 'unknown') return;
+  }
+  throw new Error('SpotifyPlus did not come back after reload');
+}
 
 // ---- shared play history in HA user data ---------------------------------
 

@@ -26,6 +26,8 @@ export interface HomeAssistant {
     returnResponse?: boolean,
   ): Promise<ServiceResponse | void>;
   callWS<T = unknown>(msg: Record<string, unknown>): Promise<T>;
+  /** REST helper of the HA frontend; absent in the dev mock */
+  callApi?<T = unknown>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: string, data?: Record<string, unknown>): Promise<T>;
 }
 
 export type PlaylistLayout = 'tiles' | 'list';

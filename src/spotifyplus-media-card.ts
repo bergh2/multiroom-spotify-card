@@ -238,10 +238,23 @@ export class SpotifyPlusMediaCard extends SpeakerCardBase {
     const start = () => sp.playContext(hass, cfg.spotifyplus_entity, pl.uri, cfg.device_name, cfg.shuffle);
     start()
       .catch(async (e: unknown) => {
-        // A stale Cast address inside SpotifyPlus shows up as "could not activate … timed out".
-        // Refresh its device list once and try again before giving up.
-        this.showToast(`${errorText(e)} Retrying with a refreshed device list…`, 6000);
-        await sp.refreshDevices(hass, cfg.spotifyplus_entity);
+        // A stale Cast group address inside SpotifyPlus shows up as "could not activate … timed out"
+        // or "failed to connect". Only a reload of the integration clears it, so do that once and retry.
+        this.showToast(`${errorText(e)} Reloading SpotifyPlus and retrying…`, 8000);
+        this._starting = { uri: pl.uri, since: Date.now() };
+        if (this._startTimer) window.clearTimeout(this._startTimer);
+        this._startTimer = window.setTimeout(() => {
+          if (this._starting?.uri === pl.uri) {
+            this._starting = null;
+            this.showToast(`${cfg.device_name} did not start within 90 s. Check the speakers and try again.`, 6000);
+          }
+        }, START_TIMEOUT_MS + 30_000);
+        try {
+          await sp.reloadIntegration(hass, cfg.spotifyplus_entity);
+        } catch {
+          // not an admin (or reload failed): fall back to a device list refresh
+          await sp.refreshDevices(hass, cfg.spotifyplus_entity);
+        }
         if (this._starting?.uri !== pl.uri) return;
         await start();
       })
