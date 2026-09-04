@@ -85,6 +85,10 @@ How it works:
   your own playlists in Spotify's order until real plays take their place.
 - Refreshes: on load, a minute after a start, and every 10 minutes while
   visible. Roughly 10 to 30 API calls per day.
+- Deleted playlists: Spotify only unfollows a playlist you "delete", it stays
+  fetchable by id. Once a day the card checks history entries that are not among
+  your playlists and drops the ones you own; other people's playlists you played
+  without following are kept.
 
 ## `spotify-media-card` (Music Assistant)
 
