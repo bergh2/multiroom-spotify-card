@@ -92,14 +92,45 @@ export async function getPlaylistMeta(hass: HomeAssistant, entity: string, uri: 
   return meta ? { ...meta, uri } : null;
 }
 
-/** Start a context (playlist) on a Spotify Connect device by name; wakes idle Chromecasts. */
+/** Start a context (playlist) on a Spotify Connect device by name; wakes idle Chromecasts. The card shows its own errors, so HA's toast is suppressed. */
 export const playContext = (hass: HomeAssistant, entity: string, contextUri: string, deviceName: string, shuffle: boolean) =>
-  hass.callService('spotifyplus', 'player_media_play_context', {
-    entity_id: entity,
-    context_uri: contextUri,
-    device_id: deviceName,
-    shuffle,
-  });
+  hass.callService(
+    'spotifyplus',
+    'player_media_play_context',
+    { entity_id: entity, context_uri: contextUri, device_id: deviceName, shuffle },
+    undefined,
+    false,
+  );
+
+/** Names in SpotifyPlus' device directory (empty right after a reload while discovery runs). */
+export async function listDeviceNames(hass: HomeAssistant, entity: string, refresh = false): Promise<string[]> {
+  const res = await call(hass, 'get_spotify_connect_devices', { entity_id: entity, refresh });
+  return items(unwrap(res))
+    .map((d) => pick<string>(d, 'name', 'Name'))
+    .filter((n): n is string => typeof n === 'string');
+}
+
+/**
+ * After a reload SpotifyPlus rebuilds its device directory in the background; a
+ * play command sent before the group is back in it fails again. Poll until the
+ * device shows up, then give discovery a few more seconds to settle.
+ */
+export async function waitForDevice(hass: HomeAssistant, entity: string, deviceName: string, timeoutMs = 45_000): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const names = await listDeviceNames(hass, entity, false);
+      if (names.some((n) => n.toLowerCase() === deviceName.toLowerCase())) {
+        await new Promise((r) => setTimeout(r, 5000));
+        return true;
+      }
+    } catch {
+      /* directory not ready */
+    }
+    await new Promise((r) => setTimeout(r, 3000));
+  }
+  return false;
+}
 
 /** Force SpotifyPlus to rediscover Spotify Connect / Cast devices. Not enough for a stale Cast group host; see reloadIntegration. */
 export const refreshDevices = (hass: HomeAssistant, entity: string) =>
