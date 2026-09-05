@@ -141,16 +141,24 @@ export const refreshDevices = (hass: HomeAssistant, entity: string) =>
  * stale Cast group address after the group re-forms. Resolves once the player entity is
  * back, or throws if the user cannot administer config entries.
  */
-export async function reloadIntegration(hass: HomeAssistant, entity: string, timeoutMs = 30_000): Promise<void> {
+export async function reloadIntegration(
+  hass: HomeAssistant,
+  entity: string,
+  /** live state reader; the `hass` object captured at call time goes stale as HA replaces it */
+  getState: () => string | undefined = () => hass.states[entity]?.state,
+  timeoutMs = 30_000,
+): Promise<void> {
   if (!hass.callApi) throw new Error('config entry reload not available');
   const entries = await hass.callWS<Array<{ entry_id: string; domain: string }>>({ type: 'config_entries/get', domain: 'spotifyplus' });
   const entry = entries?.[0];
   if (!entry) throw new Error('SpotifyPlus config entry not found');
   await hass.callApi('POST', `config/config_entries/entry/${entry.entry_id}/reload`);
+  // the entity goes unavailable first; wait for that, then for it to come back
+  await new Promise((r) => setTimeout(r, 3000));
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     await new Promise((r) => setTimeout(r, 1000));
-    const st = hass.states[entity]?.state;
+    const st = getState();
     if (st && st !== 'unavailable' && st !== 'unknown') return;
   }
   throw new Error('SpotifyPlus did not come back after reload');

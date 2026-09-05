@@ -2696,16 +2696,18 @@ async function $s(s, t, e, i = 45e3) {
   return !1;
 }
 const ks = (s, t) => s.callService("spotifyplus", "get_spotify_connect_devices", { entity_id: t, refresh: !0 }, void 0, !1, !0);
-async function Ss(s, t, e = 3e4) {
-  var o;
+async function Ss(s, t, e = () => {
+  var r;
+  return (r = s.states[t]) == null ? void 0 : r.state;
+}, i = 3e4) {
   if (!s.callApi) throw new Error("config entry reload not available");
-  const i = await s.callWS({ type: "config_entries/get", domain: "spotifyplus" }), r = i == null ? void 0 : i[0];
-  if (!r) throw new Error("SpotifyPlus config entry not found");
-  await s.callApi("POST", `config/config_entries/entry/${r.entry_id}/reload`);
-  const n = Date.now() + e;
-  for (; Date.now() < n; ) {
+  const r = await s.callWS({ type: "config_entries/get", domain: "spotifyplus" }), n = r == null ? void 0 : r[0];
+  if (!n) throw new Error("SpotifyPlus config entry not found");
+  await s.callApi("POST", `config/config_entries/entry/${n.entry_id}/reload`), await new Promise((a) => setTimeout(a, 3e3));
+  const o = Date.now() + i;
+  for (; Date.now() < o; ) {
     await new Promise((l) => setTimeout(l, 1e3));
-    const a = (o = s.states[t]) == null ? void 0 : o.state;
+    const a = e();
     if (a && a !== "unavailable" && a !== "unknown") return;
   }
   throw new Error("SpotifyPlus did not come back after reload");
@@ -3092,7 +3094,10 @@ let x = class extends R {
         ((l = this._starting) == null ? void 0 : l.uri) === s.uri && (this._starting = null, this.showToast(`${e.device_name} did not start within 90 s. Check the speakers and try again.`, 6e3));
       }, Xt + 3e4);
       try {
-        await Ss(t, e.spotifyplus_entity), await $s(t, e.spotifyplus_entity, e.device_name);
+        await Ss(t, e.spotifyplus_entity, () => {
+          var l, c;
+          return (c = (l = this._hass) == null ? void 0 : l.states[e.spotifyplus_entity]) == null ? void 0 : c.state;
+        }), await $s(t, e.spotifyplus_entity, e.device_name);
       } catch {
         await ks(t, e.spotifyplus_entity);
       }

@@ -291,7 +291,7 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
           }
         }, START_TIMEOUT_MS + 30_000);
         try {
-          await sp.reloadIntegration(hass, cfg.spotifyplus_entity);
+          await sp.reloadIntegration(hass, cfg.spotifyplus_entity, () => this._hass?.states[cfg.spotifyplus_entity]?.state);
           // the entity is back before discovery has finished; wait for the group to reappear
           await sp.waitForDevice(hass, cfg.spotifyplus_entity, cfg.device_name);
         } catch {
