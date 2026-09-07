@@ -6,3 +6,4 @@ dev/screens/
 tools/spotifyplus-auth/spotifyplus_tokens.json
 tools/spotifyplus-auth/AuthTokenGenerator.py
 tools/spotifyplus-auth/.venv/
+*.sil
