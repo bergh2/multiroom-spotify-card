@@ -276,6 +276,29 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
         this.showToast(`${cfg.device_name} did not start within 60 s. Check the speakers and try again.`, 6000);
       }
     }, START_TIMEOUT_MS);
+    if (cfg.start_script) {
+      // Server-side start: the HA script activates the group, verifies it, and reloads/retries
+      // on its own, so the recovery survives the phone putting this dashboard to sleep.
+      if (this._startTimer) window.clearTimeout(this._startTimer);
+      this._startTimer = window.setTimeout(() => {
+        if (this._starting?.uri === pl.uri) {
+          this._starting = null;
+          this.showToast(`${cfg.device_name} did not start within 2.5 min. Check the speakers and try again.`, 6000);
+        }
+      }, 150_000);
+      sp.startViaScript(hass, cfg.start_script, {
+        context_uri: pl.uri,
+        device_name: cfg.device_name,
+        group_entity: cfg.cast_group_entity,
+        shuffle: cfg.shuffle,
+      })
+        .then(() => this._scheduleRefresh(REFRESH_AFTER_START_MS))
+        .catch((e: unknown) => {
+          this._starting = null;
+          this.showToast(errorText(e), 8000);
+        });
+      return;
+    }
     const start = () => sp.playContext(hass, cfg.spotifyplus_entity, pl.uri, cfg.device_name, cfg.shuffle);
     start()
       .catch(async (e: unknown) => {

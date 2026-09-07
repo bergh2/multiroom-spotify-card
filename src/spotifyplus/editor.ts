@@ -30,6 +30,7 @@ const SCHEMA = [
   { name: 'master_style', selector: { select: { mode: 'dropdown', options: [{ value: 'plain', label: 'Plain row' }, { value: 'panel', label: 'Own panel' }, { value: 'tree', label: 'Speakers indented under it' }] } } },
   { name: 'fill_with_favorites', selector: { boolean: {} } },
   { name: 'history_key', selector: { text: {} } },
+  { name: 'start_script', selector: { entity: { domain: 'script' } } },
   { name: 'title', selector: { text: {} } },
   { name: 'accent', selector: { text: {} } },
 ];
@@ -55,6 +56,7 @@ const LABELS: Record<string, string> = {
   master_style: 'Master volume style',
   fill_with_favorites: 'Fill empty slots with my own playlists',
   history_key: 'Play history key (shared by cards using the same key)',
+  start_script: 'Start via HA script (server-side recovery, optional)',
   title: 'Title',
   accent: 'Accent color (CSS)',
 };

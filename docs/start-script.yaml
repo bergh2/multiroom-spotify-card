@@ -1,0 +1,72 @@
+# Home Assistant script used by multiroom-spotify-card (option `start_script`).
+# Create it under Settings → Automations & scenes → Scripts → "Edit in YAML",
+# replace the SpotifyPlus entity and config entry id, and set
+#   start_script: script.multiroom_spotify_start
+# in the card. The card passes context_uri, device_name, group_entity and shuffle.
+alias: "Multiroom Spotify: start playlist with recovery"
+description: >-
+  Starts a Spotify context on a Spotify Connect device via SpotifyPlus. If the
+  Cast group does not report Spotify playing within 45 s (typically because
+  SpotifyPlus holds a stale address after the group re-formed), reloads
+  SpotifyPlus and tries once more.
+icon: mdi:spotify
+mode: restart
+fields:
+  context_uri:
+    name: Context URI
+    description: "spotify:playlist:… (or album/artist)"
+    required: true
+    selector:
+      text: {}
+  device_name:
+    name: Device name
+    description: Spotify Connect device name, e.g. the Cast group
+    required: true
+    selector:
+      text: {}
+  group_entity:
+    name: Cast group entity
+    description: media_player entity of the Cast group, used to verify the start
+    required: true
+    selector:
+      entity:
+        domain: media_player
+  shuffle:
+    name: Shuffle
+    default: false
+    selector:
+      boolean: {}
+sequence:
+  - action: spotifyplus.player_media_play_context
+    continue_on_error: true
+    data:
+      entity_id: media_player.spotifyplus            # your SpotifyPlus player
+      context_uri: "{{ context_uri }}"
+      device_id: "{{ device_name }}"
+      shuffle: "{{ shuffle | default(false) }}"
+  - wait_template: >-
+      {{ is_state(group_entity, 'playing')
+         and (state_attr(group_entity, 'app_name') | default('') | lower) == 'spotify' }}
+    timeout: "00:00:45"
+    continue_on_timeout: true
+  - if:
+      - condition: template
+        value_template: >-
+          {{ not (is_state(group_entity, 'playing')
+                  and (state_attr(group_entity, 'app_name') | default('') | lower) == 'spotify') }}
+    then:
+      - action: homeassistant.reload_config_entry
+        data:
+          entry_id: 01M1KF08XZFWTESFFAKHEDX3N7          # your SpotifyPlus config entry id
+      - wait_template: "{{ not is_state('media_player.spotifyplus', 'unavailable') }}"
+        timeout: "00:00:40"
+        continue_on_timeout: true
+      - delay:
+          seconds: 20
+      - action: spotifyplus.player_media_play_context
+        continue_on_error: true
+        data:
+          entity_id: media_player.spotifyplus
+          context_uri: "{{ context_uri }}"
+          device_id: "{{ device_name }}"
+          shuffle: "{{ shuffle | default(false) }}"

@@ -34,6 +34,13 @@ export interface SpCardConfig {
   history_key?: string;
   /** top up the grid with the user's own playlists until playlist_count is reached (default true) */
   fill_with_favorites?: boolean;
+  /**
+   * Optional HA script (script.xxx) that starts the playlist server-side with recovery.
+   * It receives context_uri, device_name, group_entity and shuffle. When set, the card
+   * calls it instead of spotifyplus.player_media_play_context, so the retry keeps
+   * running even if the phone puts the dashboard to sleep.
+   */
+  start_script?: string;
   /** vertical (default) | horizontal | auto */
   layout?: CardLayout;
   title?: string;
@@ -54,6 +61,7 @@ export interface SpNormalizedConfig extends SpeakerSectionConfig {
   tile_columns_wide: number;
   history_key: string;
   fill_with_favorites: boolean;
+  start_script: string;
   title: string;
   accent: string;
 }
@@ -82,6 +90,11 @@ export function normalizeSpConfig(raw: SpCardConfig): SpNormalizedConfig {
     ...normalizePlaylistView(CARD, raw),
     history_key: normalizeText(raw.history_key, 'multiroom-spotify-card'),
     fill_with_favorites: raw.fill_with_favorites !== false,
+    start_script: (() => {
+      const s = normalizeText(raw.start_script, '');
+      if (s && !/^script\.[a-z0-9_]+$/.test(s)) fail(CARD, 'start_script must be a script entity id like script.multiroom_spotify_start');
+      return s;
+    })(),
     title: typeof raw.title === 'string' ? raw.title : 'Listening',
     accent: normalizeText(raw.accent, DEFAULT_ACCENT),
   };

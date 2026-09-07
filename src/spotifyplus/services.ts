@@ -102,6 +102,13 @@ export const playContext = (hass: HomeAssistant, entity: string, contextUri: str
     false,
   );
 
+/** Start through a user-provided HA script that does the activation and recovery server-side. */
+export const startViaScript = (
+  hass: HomeAssistant,
+  script: string,
+  data: { context_uri: string; device_name: string; group_entity: string; shuffle: boolean },
+) => hass.callService('script', script.replace(/^script\./, ''), data, undefined, false);
+
 /** Names in SpotifyPlus' device directory (empty right after a reload while discovery runs). */
 export async function listDeviceNames(hass: HomeAssistant, entity: string, refresh = false): Promise<string[]> {
   const res = await call(hass, 'get_spotify_connect_devices', { entity_id: entity, refresh });
