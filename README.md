@@ -31,16 +31,29 @@ group. Speaker rows and presets only mute/unmute and set the volume of each
 speaker's own Google Cast entity, so "off" means "muted in the group". Add or
 remove rooms in Google Home; the card follows.
 
-## Requirements
+## Prerequisites
 
-- Home Assistant 2024.x or newer (developed on 2026.x).
-- The **Google Cast** integration, with entities for the individual speakers and for the group.
-- A Google Home speaker group containing the speakers you want to control.
-- For the SpotifyPlus card: **SpotifyPlus v1.0.86 or newer** with the
-  [Spotify Desktop Player token](https://github.com/thlucas1/homeassistantcomponent_spotifyplus/wiki/Device-Configuration-Options)
-  configured. Without that token SpotifyPlus cannot wake an idle Chromecast. Notes and a helper for creating it are in [`tools/spotifyplus-auth`](tools/spotifyplus-auth/README.md).
-- For the Music Assistant card: the Music Assistant server and the `music_assistant` integration, with Spotify as a provider.
-- Spotify Premium.
+Common to both cards:
+
+- **Home Assistant** 2024.x or newer (developed on 2026.x).
+- **Spotify Premium**. Spotify Connect and playlist playback on Cast devices need it.
+- A **Chromecast speaker group** created in the Google Home app, containing the speakers you want to control. Multi-room sync is done by the group, so the card always plays to it.
+- The **Google Cast** integration in Home Assistant, with one `media_player` entity per speaker and one for the group. The speaker entities drive the volume rows and presets; the group entity feeds the now-playing bar.
+
+For `multiroom-spotify-card` (SpotifyPlus):
+
+- **[SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus) v1.0.86 or newer**, installed through HACS and set up with your own Spotify developer app (client id and secret).
+- The **Spotify Desktop Player token** configured in SpotifyPlus, following
+  [Google Chromecast Device Support](https://github.com/thlucas1/homeassistantcomponent_spotifyplus/wiki/Device-Configuration-Options#google-chromecast-device-support)
+  in the SpotifyPlus wiki. Without it SpotifyPlus cannot wake an idle Chromecast. Notes and a helper for creating the token on Windows are in [`tools/spotifyplus-auth`](tools/spotifyplus-auth/README.md).
+- The group must be discoverable over mDNS from the Home Assistant host (same network, or an mDNS reflector across VLANs). Check with `media_player.spotifyplus` → `source_list`: the group's name should be listed.
+- Optional but recommended: the [start script](docs/start-script.yaml) and the [automations](docs/automations.yaml) described under the known issue below.
+
+For `multiroom-spotify-card-ma` (Music Assistant), instead of SpotifyPlus:
+
+- The **[Music Assistant](https://www.music-assistant.io/) server** (add-on or container) with the **Spotify provider** configured, ideally with your own Spotify client id so you are not on MA's shared API allowance.
+- The **Music Assistant integration** in Home Assistant, which creates a second `media_player` entity for the Chromecast group. The card plays to that entity; the speaker rows still use the Google Cast entities.
+- Music Assistant plays the stream itself, so the Spotify app cannot see or control the session. If you want to keep using the Spotify app afterwards, use the SpotifyPlus card.
 
 ## Installation
 
