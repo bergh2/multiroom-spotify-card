@@ -137,9 +137,52 @@ Spotify app cannot control it.
 | SpotifyPlus only: `spotifyplus_entity`, `cast_group_entity`, `device_name`, `control_via`, `shuffle`, `fill_with_favorites`, `history_key` | see above | |
 | Music Assistant only: `group_entity`, `ma_config_entry_id` | see above | |
 
+## Known issue: the Cast group changes leader
+
+A Google Cast speaker group has no address of its own. One member is elected
+leader and hosts the group, and the leader changes whenever a member reboots,
+drops off Wi-Fi, or the group re-forms (nightly maintenance on the router or
+the speakers is a common trigger). Every Cast client handles this by
+re-discovering the group over mDNS; Home Assistant's own Cast integration does.
+SpotifyPlus caches the leader's address and keeps using it, so the next start
+after a leader change fails with
+
+```
+Failed to connect to service HostServiceInfo(host='192.168.x.y', port=32127, ...)
+Could not activate Spotify Cast application ... wait timed out after 20 s
+```
+
+until the SpotifyPlus integration is reloaded. This is tracked upstream as
+[SpotifyPlus issue #248](https://github.com/thlucas1/homeassistantcomponent_spotifyplus/issues/248).
+Until it is fixed there, the card and two automations work around it:
+
+1. **`start_script`** (see above): the start runs inside Home Assistant, verifies
+   that the group actually started, and reloads SpotifyPlus and retries once if
+   it did not. Without the option the card does the same from the browser, which
+   only works while the dashboard stays open.
+2. **Reload after restarts**: an automation that reloads SpotifyPlus a few
+   minutes after each Home Assistant start and once every morning, so the first
+   start of the day does not pay the retry.
+3. **Reload after the group re-forms**: an automation that reloads SpotifyPlus
+   two minutes after the group's Cast entity comes back from `unavailable`,
+   unless music is playing on it. Short leader flickers do not always make the
+   entity unavailable, so this catches most but not all changes; the script
+   above covers the rest.
+
+Both automations are in [`docs/automations.yaml`](docs/automations.yaml);
+replace the config entry id and the group entity. Reloading SpotifyPlus costs a
+handful of Spotify API calls and takes about ten seconds, during which its
+entity is unavailable.
+
+If the leader changes many times a day, look at the speakers' Wi-Fi as well:
+scheduled channel optimization, band steering, minimum RSSI and multicast
+filtering on the WLAN all make Cast devices drop and rejoin, and every rejoin
+can trigger an election. `tools/spotifyplus-auth/group_watch.py` logs each
+change with a timestamp so you can match it against the router's client history.
+
 ## Troubleshooting
 
-- **"Starting on …" ends with "did not start"**: SpotifyPlus could not wake the group. Check that the Desktop Player token is installed, and that the group name in `device_name` matches the Spotify Connect device list (`media_player.spotifyplus` → `source_list`). If the Home Assistant log says `Failed to connect to service HostServiceInfo(...)`, the group has moved to another speaker and SpotifyPlus has a stale address; reload the SpotifyPlus integration. `tools/spotifyplus-auth/mdns_cast.py` shows where the group really is.
+- **"Starting on …" ends with "did not start"**: SpotifyPlus could not wake the group. Check that the Desktop Player token is installed, and that the group name in `device_name` matches the Spotify Connect device list (`media_player.spotifyplus` → `source_list`). If the Home Assistant log says `Failed to connect to service HostServiceInfo(...)`, the group has moved to another speaker and SpotifyPlus has a stale address; see the known issue above. `tools/spotifyplus-auth/mdns_cast.py` shows where the group really is.
 - **A speaker shows `n/a` while the group plays**: it is not a member of the Google Home group. Add it in the Google Home app.
 - **Speakers show `–` when idle**: Google Cast strips volume and mute attributes while a speaker is off. Values you set before pressing play are remembered and applied.
 - **Only a few playlists after a fresh install**: Spotify reports the last 50 tracks only. The history grows with use; `fill_with_favorites` fills the gaps meanwhile.

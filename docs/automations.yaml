@@ -1,0 +1,53 @@
+# Automations that work around SpotifyPlus keeping a stale address for a Google
+# Cast speaker group after the group changes leader
+# (https://github.com/thlucas1/homeassistantcomponent_spotifyplus/issues/248).
+# See "Known issue: the Cast group changes leader" in the README.
+#
+# Replace the config entry id (Settings → Devices & services → SpotifyPlus →
+# three dots → the id in the URL, or `config_entries/get` in the WebSocket API)
+# and the Cast group entity, then paste each block into
+# Settings → Automations & scenes → Create automation → Edit in YAML.
+
+- alias: "SpotifyPlus: reload after restarts"
+  description: >-
+    A Home Assistant restart (and any nightly maintenance that reboots the
+    speakers) re-forms the Cast group, which leaves SpotifyPlus with a stale
+    address. Reload it a few minutes after each start and once every morning so
+    the first playlist start of the day is fast.
+  mode: single
+  triggers:
+    - trigger: homeassistant
+      event: start
+    - trigger: time
+      at: "05:00:00"
+  actions:
+    - delay:
+        minutes: 3
+    - action: homeassistant.reload_config_entry
+      data:
+        entry_id: 01XXXXXXXXXXXXXXXXXXXXXXXX          # your SpotifyPlus config entry id
+
+- alias: "SpotifyPlus: reload after the Cast group re-forms"
+  description: >-
+    When the Cast group changes leader its Home Assistant entity usually goes
+    unavailable for a moment. Reload SpotifyPlus two minutes after the group
+    settles, unless music is playing or paused on it.
+  mode: restart
+  triggers:
+    - trigger: state
+      entity_id: media_player.all                    # Google Cast entity of the group
+      from: unavailable
+  actions:
+    - delay:
+        minutes: 2
+    - condition: not
+      conditions:
+        - condition: state
+          entity_id: media_player.all
+          state:
+            - playing
+            - paused
+            - buffering
+    - action: homeassistant.reload_config_entry
+      data:
+        entry_id: 01XXXXXXXXXXXXXXXXXXXXXXXX          # your SpotifyPlus config entry id
