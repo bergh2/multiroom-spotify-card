@@ -30,6 +30,8 @@ declare global {
 }
 
 const START_TIMEOUT_MS = 60_000;
+const SCRIPT_CAP_MS = 360_000; // hard cap for start_script runs
+const SCRIPT_GRACE_MS = 5_000; // Cast state lag after the script finishes
 const REFRESH_AFTER_START_MS = 60_000;
 const REFRESH_INTERVAL_MS = 10 * 60_000;
 const FAVORITES_TTL_MS = 60 * 60_000;
@@ -62,6 +64,7 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
   private _refreshTimer?: number;
   private _intervalTimer?: number;
   private _startTimer?: number;
+  private _scriptDoneTimer?: number;
   private _historyLoaded = false;
 
   protected get section(): SpNormalizedConfig | undefined {
@@ -134,7 +137,7 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
 
   override disconnectedCallback(): void {
     super.disconnectedCallback();
-    for (const t of [this._refreshTimer, this._intervalTimer, this._startTimer]) if (t) window.clearTimeout(t);
+    for (const t of [this._refreshTimer, this._intervalTimer, this._startTimer, this._scriptDoneTimer]) if (t) window.clearTimeout(t);
     if (this._intervalTimer) window.clearInterval(this._intervalTimer);
   }
 
@@ -279,13 +282,14 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
     if (cfg.start_script) {
       // Server-side start: the HA script activates the group, verifies it, and reloads/retries
       // on its own, so the recovery survives the phone putting this dashboard to sleep.
+      // The busy state follows the script entity (see _checkStarted); this is only a hard cap.
       if (this._startTimer) window.clearTimeout(this._startTimer);
       this._startTimer = window.setTimeout(() => {
         if (this._starting?.uri === pl.uri) {
           this._starting = null;
-          this.showToast(`${cfg.device_name} did not start within 2.5 min. Check the speakers and try again.`, 6000);
+          this.showToast(`${cfg.device_name} did not start within 6 min. Check the speakers and try again.`, 6000);
         }
-      }, 150_000);
+      }, SCRIPT_CAP_MS);
       sp.startViaScript(hass, cfg.start_script, {
         context_uri: pl.uri,
         device_name: cfg.device_name,
@@ -337,9 +341,27 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
     if (!cfg || !this._starting) return;
     const g = hass.states[cfg.cast_group_entity];
     const app = typeof g?.attributes.app_name === 'string' ? g.attributes.app_name : '';
-    if (g?.state === 'playing' && /spotify/i.test(app) && hass.states[cfg.cast_group_entity].last_updated > new Date(this._starting.since).toISOString()) {
+    const since = new Date(this._starting.since).toISOString();
+    if (g?.state === 'playing' && /spotify/i.test(app) && hass.states[cfg.cast_group_entity].last_updated > since) {
       this._starting = null;
       if (this._startTimer) window.clearTimeout(this._startTimer);
+      if (this._scriptDoneTimer) window.clearTimeout(this._scriptDoneTimer);
+      this._scriptDoneTimer = undefined;
+      return;
+    }
+    // Server-side start: the script stays "on" until it knows the outcome (it waits for the
+    // group after each attempt). Once it has finished without the group playing, give the Cast
+    // state a few seconds to catch up, then report the failure.
+    const script = cfg.start_script ? hass.states[cfg.start_script] : undefined;
+    if (script && script.state === 'off' && script.last_changed > since && !this._scriptDoneTimer) {
+      const uri = this._starting.uri;
+      this._scriptDoneTimer = window.setTimeout(() => {
+        this._scriptDoneTimer = undefined;
+        if (this._starting?.uri !== uri) return;
+        this._starting = null;
+        if (this._startTimer) window.clearTimeout(this._startTimer);
+        this.showToast(`${cfg.device_name} did not start. Check the speakers and the Home Assistant log.`, 8000);
+      }, SCRIPT_GRACE_MS);
     }
   }
 

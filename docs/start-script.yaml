@@ -3,10 +3,14 @@
 # replace the SpotifyPlus entity and config entry id, and set
 #   start_script: script.multiroom_spotify_start
 # in the card. The card passes context_uri, device_name, group_entity and shuffle.
+#
+# The script stays running until it knows the outcome (it waits for the Cast
+# group after each attempt), and the card keeps its "Starting…" state as long as
+# the script is running. Do not add long delays before the first attempt.
 alias: "Multiroom Spotify: start playlist with recovery"
 description: >-
   Starts a Spotify context on a Spotify Connect device via SpotifyPlus. If the
-  Cast group does not report Spotify playing within 45 s (typically because
+  Cast group has not started when the call returns (typically because
   SpotifyPlus holds a stale address after the group re-formed), reloads
   SpotifyPlus and tries once more.
 icon: mdi:spotify
@@ -37,6 +41,8 @@ fields:
     selector:
       boolean: {}
 sequence:
+  # Attempt 1. SpotifyPlus itself retries once internally and returns after
+  # 20 to 90 s; when it raises, the group is not playing and we go straight on.
   - action: spotifyplus.player_media_play_context
     continue_on_error: true
     data:
@@ -47,7 +53,7 @@ sequence:
   - wait_template: >-
       {{ is_state(group_entity, 'playing')
          and (state_attr(group_entity, 'app_name') | default('') | lower) == 'spotify' }}
-    timeout: "00:00:45"
+    timeout: "00:00:15"
     continue_on_timeout: true
   - if:
       - condition: template
@@ -55,14 +61,15 @@ sequence:
           {{ not (is_state(group_entity, 'playing')
                   and (state_attr(group_entity, 'app_name') | default('') | lower) == 'spotify') }}
     then:
+      # Attempt 2 after a reload: SpotifyPlus re-discovers the group at its current address.
       - action: homeassistant.reload_config_entry
         data:
-          entry_id: 01M1KF08XZFWTESFFAKHEDX3N7          # your SpotifyPlus config entry id
+          entry_id: 01XXXXXXXXXXXXXXXXXXXXXXXX          # your SpotifyPlus config entry id
       - wait_template: "{{ not is_state('media_player.spotifyplus', 'unavailable') }}"
         timeout: "00:00:40"
         continue_on_timeout: true
       - delay:
-          seconds: 20
+          seconds: 15                                  # let the device directory rebuild
       - action: spotifyplus.player_media_play_context
         continue_on_error: true
         data:
@@ -70,3 +77,8 @@ sequence:
           context_uri: "{{ context_uri }}"
           device_id: "{{ device_name }}"
           shuffle: "{{ shuffle | default(false) }}"
+      - wait_template: >-
+          {{ is_state(group_entity, 'playing')
+             and (state_attr(group_entity, 'app_name') | default('') | lower) == 'spotify' }}
+        timeout: "00:00:30"
+        continue_on_timeout: true
