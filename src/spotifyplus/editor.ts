@@ -4,9 +4,10 @@ import type { HomeAssistant } from '../shared/types';
 import type { SpCardConfig } from './config';
 
 const SCHEMA = [
-  { name: 'spotifyplus_entity', required: true, selector: { entity: { domain: 'media_player', integration: 'spotifyplus' } } },
+  { name: 'backend', selector: { select: { mode: 'dropdown', options: [{ value: 'spotifyplus', label: 'SpotifyPlus' }, { value: 'spotcast', label: 'Spotcast (recommended)' }] } } },
+  { name: 'spotifyplus_entity', selector: { entity: { domain: 'media_player', integration: 'spotifyplus' } } },
   { name: 'cast_group_entity', required: true, selector: { entity: { domain: 'media_player', integration: 'cast' } } },
-  { name: 'device_name', required: true, selector: { text: {} } },
+  { name: 'device_name', selector: { text: {} } },
   { name: 'speakers', required: true, selector: { entity: { domain: 'media_player', integration: 'cast', multiple: true } } },
   {
     type: 'grid',
@@ -31,14 +32,16 @@ const SCHEMA = [
   { name: 'fill_with_favorites', selector: { boolean: {} } },
   { name: 'history_key', selector: { text: {} } },
   { name: 'start_script', selector: { entity: { domain: 'script' } } },
+  { name: 'spotcast_account', selector: { text: {} } },
   { name: 'title', selector: { text: {} } },
   { name: 'accent', selector: { text: {} } },
 ];
 
 const LABELS: Record<string, string> = {
-  spotifyplus_entity: 'SpotifyPlus player',
+  backend: 'Starts playback and lists playlists via',
+  spotifyplus_entity: 'SpotifyPlus player (SpotifyPlus backend)',
   cast_group_entity: 'Google Cast entity of the speaker group',
-  device_name: 'Spotify Connect device name to play on (e.g. Alla)',
+  device_name: 'Spotify Connect device name (required with SpotifyPlus, label only with Spotcast)',
   speakers: 'Speakers (Google Cast entities)',
   control_via: 'Now playing / transport via',
   shuffle: 'Start playlists shuffled',
@@ -57,6 +60,7 @@ const LABELS: Record<string, string> = {
   fill_with_favorites: 'Fill empty slots with my own playlists',
   history_key: 'Play history key (shared by cards using the same key)',
   start_script: 'Start via HA script (server-side recovery, optional)',
+  spotcast_account: 'Spotcast config entry id (only with several Spotcast accounts)',
   title: 'Title',
   accent: 'Accent color (CSS)',
 };
@@ -109,7 +113,8 @@ export class MultiroomSpotifyCardEditor extends LitElement {
     return {
       ...c,
       speakers,
-      spotifyplus_entity: c.spotifyplus_entity ?? 'media_player.spotifyplus',
+      backend: c.backend ?? 'spotifyplus',
+      spotifyplus_entity: c.spotifyplus_entity ?? (c.backend === 'spotcast' ? undefined : 'media_player.spotifyplus'),
       control_via: c.control_via ?? 'cast',
       master_volume: c.master_volume !== false,
       fill_with_favorites: c.fill_with_favorites !== false,

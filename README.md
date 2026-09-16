@@ -11,7 +11,7 @@ Two cards are included, sharing the same design:
 
 | Card | Starts music through | Choose it when |
 |---|---|---|
-| `custom:multiroom-spotify-card` | [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus): launches Spotify's own Cast receiver on the speaker group, so it is a real Spotify Connect session | You want to keep controlling the music from the Spotify app afterwards (recommended) |
+| `custom:multiroom-spotify-card` | [Spotcast](https://github.com/Mincka/spotcast) (recommended) or [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus): launches Spotify's own Cast receiver on the speaker group, so it is a real Spotify Connect session | You want to keep controlling the music from the Spotify app afterwards (recommended) |
 | `custom:multiroom-spotify-card-ma` | [Music Assistant](https://www.music-assistant.io/): MA streams the audio itself | You already run Music Assistant and don't need Spotify Connect |
 
 ## Features
@@ -40,7 +40,13 @@ Common to both cards:
 - A **Chromecast speaker group** created in the Google Home app, containing the speakers you want to control. Multi-room sync is done by the group, so the card always plays to it.
 - The **Google Cast** integration in Home Assistant, with one `media_player` entity per speaker and one for the group. The speaker entities drive the volume rows and presets; the group entity feeds the now-playing bar.
 
-For `multiroom-spotify-card` (SpotifyPlus):
+For `multiroom-spotify-card` with **Spotcast** (recommended: fastest start, no token script, one integration):
+
+- **[Spotcast](https://github.com/Mincka/spotcast) v6.6 or newer** (the maintained fork), added to HACS as a custom repository of type Integration, and set up with your own Spotify developer app (client id and secret). The setup flow includes a "desktop authorization" step that logs Spotcast in as the Spotify desktop app; that is what lets it wake an idle Chromecast. No Python script needed.
+- In Spotcast's options, set the **base refresh rate to 600** seconds. The card does not use Spotcast's own sensors, so slow polling keeps your Spotify API budget for the card's own calls.
+- Set `backend: spotcast` in the card.
+
+For `multiroom-spotify-card` with **SpotifyPlus** (alternative: richer play history straight from Spotify):
 
 - **[SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus) v1.0.220 or newer** (v1.0.86 works but needs the workarounds under "Known issue" below), installed through HACS and set up with your own Spotify developer app (client id and secret).
 - The **Spotify Desktop Player token** configured in SpotifyPlus, following
@@ -74,9 +80,11 @@ cards as separate files if you only want one.)
 
 ```yaml
 type: custom:multiroom-spotify-card
-spotifyplus_entity: media_player.spotifyplus   # SpotifyPlus player (default)
+backend: spotcast                              # spotcast (recommended) or spotifyplus (default)
 cast_group_entity: media_player.all            # Google Cast entity of the speaker group
-device_name: All                               # the group's name as Spotify Connect sees it
+# SpotifyPlus backend only:
+# spotifyplus_entity: media_player.spotifyplus # SpotifyPlus player
+# device_name: All                             # the group's name as Spotify Connect sees it
 speakers:                                      # Google Cast entities, in display order
   - entity: media_player.living_room
     name: Living room
@@ -101,9 +109,11 @@ tile_columns_wide: 4
 
 How it works:
 
-- **Start**: `spotifyplus.player_media_play_context` on `device_name`. The now-playing bar shows "Starting on …" with a spinner until the Cast group reports the Spotify app playing. Waking a group from cold takes 10 to 30 seconds; resuming a paused group is instant. If the start fails because SpotifyPlus holds a stale address for the group (it happens after the group re-forms), the card reloads the SpotifyPlus integration and retries once (requires an admin user).
+- **Start (Spotcast)**: `spotcast.play_media` on the Cast group entity. Spotcast uses the Cast connection Home Assistant already holds for the group, so it always reaches the group's current leader, launches the Spotify app, logs the group in and transfers playback. A cold start typically takes 10 to 20 seconds on a six-speaker group.
+- **Start (SpotifyPlus)**: `spotifyplus.player_media_play_context` on `device_name`. The now-playing bar shows "Starting on …" with a spinner until the Cast group reports the Spotify app playing. Waking a group from cold takes 20 to 35 seconds; resuming a paused group is instant. If the start fails because SpotifyPlus holds a stale address for the group (fixed in SpotifyPlus 1.0.220), the card reloads the SpotifyPlus integration and retries once (requires an admin user).
 - **Now playing and transport** come from the Cast group entity by default (`control_via: cast`), which needs no Spotify API calls and stays in sync with the Spotify app. `control_via: spotifyplus` uses the SpotifyPlus entity instead.
-- **Playlists**: Spotify's "recently played" tracks are folded into a play history stored in Home Assistant user data under `history_key`. Both orders come from it, so "most played" keeps improving over time. Spotify only reports the last 50 tracks, so with `fill_with_favorites` (default on) the remaining slots show your own playlists until real plays take their place. Playlists you delete in Spotify disappear from the history within a day.
+- **Playlists**: a play history stored in Home Assistant user data under `history_key` feeds both orders, so "most played" keeps improving over time. With Spotcast the history is built from the playlists you start in the card plus whatever Spotify reports playing while the group plays (from any app or device); names and artwork of playlists you do not follow come from Spotify's public oEmbed endpoint, which costs no API quota. With SpotifyPlus it is fed from Spotify's "recently played" tracks (the last 50). With `fill_with_favorites` (default on) the remaining slots show your own playlists until real plays take their place. Playlists you delete in Spotify disappear from the history within a day.
+- **Spotify API quota**: since July 2026 Spotify counts a daily quota per developer account, shared by all your development-mode apps, with a small budget for playlist endpoints. The card therefore fetches your playlist library at most every 12 hours and caches it in user data shared by every dashboard instance, asks for the playback context only while the group is playing, and keeps showing the cached history when a quota is exhausted (Spotify answers `429 QUOTA_EXCEEDED` until the next day). Keep other integrations from polling Spotify aggressively: 600 s in Spotcast, 60 s in SpotifyPlus.
 - **Server-side start (recommended)**: set `start_script` to a Home Assistant script that receives `context_uri`, `device_name`, `group_entity` and `shuffle`, starts the context via SpotifyPlus, waits for the Cast group to report Spotify playing, and reloads SpotifyPlus and retries once if it does not. The card then only fires the script and shows "Starting on …" for as long as the script entity is running, so the recovery keeps going even when a phone suspends the dashboard, and the card never gives up before the script does. A ready-made script is in [`docs/start-script.yaml`](docs/start-script.yaml); without `start_script` the card does the same retry from the browser. Note that SpotifyPlus itself retries once internally, so a start that needs the reload takes two to three minutes; a normal start takes 10 to 30 seconds.
 - **API use**: refresh on load, a minute after a start, and every 10 minutes while the card is visible. Roughly 10 to 30 Spotify API calls per day. Spotify's developer quota is shared per developer account, so keep other integrations using the same account from polling aggressively.
 
@@ -147,7 +157,9 @@ Spotify app cannot control it.
 | `speaker_count` | all | Speaker rows shown in the card; the picker always lists all. |
 | `preset_tolerance` | 3 | Allowed volume difference when matching the active preset. |
 | `title`, `accent` | `Listening`, indigo | Header text and accent colour (any CSS colour). |
-| SpotifyPlus only: `spotifyplus_entity`, `cast_group_entity`, `device_name`, `control_via`, `shuffle`, `fill_with_favorites`, `history_key` | see above | |
+| `backend` | `spotifyplus` | `spotcast` or `spotifyplus`: the integration that starts playback and lists your playlists. |
+| `spotcast_account` | default account | Spotcast config entry id, only when several Spotify accounts are set up in Spotcast. |
+| `multiroom-spotify-card` only: `cast_group_entity`, `spotifyplus_entity`, `device_name`, `control_via`, `shuffle`, `fill_with_favorites`, `history_key`, `start_script` | see above | |
 | Music Assistant only: `group_entity`, `ma_config_entry_id` | see above | |
 
 ## Known issue: the Cast group changes leader

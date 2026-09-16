@@ -11,6 +11,8 @@ export interface HistoryEntry {
   plays: number;
   /** epoch ms of the last check that the playlist still exists / is still followed */
   validatedAt?: number;
+  /** the playlist was seen in the user's own library and is owned by them (Spotcast backend) */
+  owned?: boolean;
 }
 
 export interface HistoryStore {
@@ -54,6 +56,48 @@ export function noteStarted(store: HistoryStore, meta: PlaylistMeta, at: number)
         : { uri: meta.uri, name: meta.name, image: meta.image, lastPlayed: at, plays: 0 },
     },
   };
+}
+
+/**
+ * Record that a playlist was observed playing at `at` (Spotcast backend: the card polls the
+ * playback context). Observations closer than `sessionGapMs` to the previous one for the same
+ * playlist extend the session instead of counting another play, so a long listen counts once.
+ */
+export function noteObserved(store: HistoryStore, uri: string | null, at: number, sessionGapMs: number): HistoryStore {
+  if (!isPlaylistUri(uri)) return store;
+  const prev = store.entries[uri];
+  if (prev && at - prev.lastPlayed < sessionGapMs) {
+    if (at <= prev.lastPlayed) return store;
+    return { ...store, entries: { ...store.entries, [uri]: { ...prev, lastPlayed: at } } };
+  }
+  return {
+    ...store,
+    entries: {
+      ...store.entries,
+      [uri]: prev ? { ...prev, plays: prev.plays + 1, lastPlayed: at } : { uri, name: '', image: null, lastPlayed: at, plays: 1 },
+    },
+  };
+}
+
+/** Mark entries that appear in the user's library and are owned by `accountId` (immutable). */
+export function markOwned(store: HistoryStore, library: PlaylistMeta[], accountId: string): HistoryStore {
+  const entries = { ...store.entries };
+  let changed = false;
+  for (const m of library) {
+    const e = entries[m.uri];
+    if (e && m.ownerId === accountId && !e.owned) {
+      entries[m.uri] = { ...e, owned: true };
+      changed = true;
+    }
+  }
+  return changed ? { ...store, entries } : store;
+}
+
+/** Owned entries that are no longer in the library: the user deleted (unfollowed) them. */
+export function ownedButGone(store: HistoryStore, libraryUris: Set<string>): string[] {
+  return Object.values(store.entries)
+    .filter((e) => e.owned && !libraryUris.has(e.uri))
+    .map((e) => e.uri);
 }
 
 /** Fill in names/artwork from playlist metadata (immutable; unchanged store returned when nothing new). */

@@ -2,16 +2,21 @@ import type { CardLayout, MasterStyle, PlaylistLayout, PlaylistSort, PresetConfi
 import { DEFAULT_ACCENT, fail, isMediaPlayer, normalizePlaylistView, normalizeSpeakerSection, normalizeText } from '../shared/config-utils';
 
 export type ControlVia = 'cast' | 'spotifyplus';
+/** Integration that starts playback and provides the playlists: SpotifyPlus (default) or Spotcast. */
+export type Backend = 'spotifyplus' | 'spotcast';
 
 /** Raw configuration of the SpotifyPlus card as written in YAML / by the editor. */
 export interface SpCardConfig {
   type: string;
-  /** SpotifyPlus media_player entity (default media_player.spotifyplus) */
+  backend?: Backend;
+  /** SpotifyPlus media_player entity (default media_player.spotifyplus); SpotifyPlus backend only */
   spotifyplus_entity?: string;
+  /** Spotcast config entry id when several accounts are set up; Spotcast backend only */
+  spotcast_account?: string;
   /** Google Cast entity of the speaker group; now-playing and transport read from it */
   cast_group_entity: string;
-  /** Spotify Connect device name the playlist is started on (the Cast group name) */
-  device_name: string;
+  /** Spotify Connect device name the playlist is started on (the Cast group name); label only with Spotcast */
+  device_name?: string;
   control_via?: ControlVia;
   shuffle?: boolean;
   speakers: Array<string | SpeakerConfig>;
@@ -49,7 +54,9 @@ export interface SpCardConfig {
 
 export interface SpNormalizedConfig extends SpeakerSectionConfig {
   type: string;
+  backend: Backend;
   spotifyplus_entity: string;
+  spotcast_account: string;
   cast_group_entity: string;
   device_name: string;
   control_via: ControlVia;
@@ -70,18 +77,23 @@ const CARD = 'multiroom-spotify-card';
 
 export function normalizeSpConfig(raw: SpCardConfig): SpNormalizedConfig {
   if (!raw || typeof raw !== 'object') fail(CARD, 'invalid configuration');
+  const backend = raw.backend ?? 'spotifyplus';
+  if (backend !== 'spotifyplus' && backend !== 'spotcast') fail(CARD, 'backend must be "spotifyplus" or "spotcast"');
   const spEntity = raw.spotifyplus_entity ?? 'media_player.spotifyplus';
-  if (!isMediaPlayer(spEntity)) fail(CARD, 'spotifyplus_entity must be the SpotifyPlus media_player entity');
+  if (backend === 'spotifyplus' && !isMediaPlayer(spEntity)) fail(CARD, 'spotifyplus_entity must be the SpotifyPlus media_player entity');
   if (!isMediaPlayer(raw.cast_group_entity)) {
     fail(CARD, 'cast_group_entity must be the Google Cast media_player entity of your speaker group');
   }
   const device = normalizeText(raw.device_name, '');
-  if (!device) fail(CARD, 'device_name is required (the Spotify Connect name of your speaker group, e.g. "Alla")');
+  if (backend === 'spotifyplus' && !device) fail(CARD, 'device_name is required (the Spotify Connect name of your speaker group, e.g. "Alla")');
   const via = raw.control_via ?? 'cast';
   if (via !== 'cast' && via !== 'spotifyplus') fail(CARD, 'control_via must be "cast" or "spotifyplus"');
+  if (backend === 'spotcast' && via === 'spotifyplus') fail(CARD, 'control_via: spotifyplus needs backend: spotifyplus');
   return {
     type: raw.type,
+    backend,
     spotifyplus_entity: spEntity,
+    spotcast_account: normalizeText(raw.spotcast_account, ''),
     cast_group_entity: raw.cast_group_entity,
     device_name: device,
     control_via: via,

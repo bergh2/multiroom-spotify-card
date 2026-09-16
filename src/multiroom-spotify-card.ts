@@ -6,16 +6,20 @@ import { deriveNowPlaying, errorText, isGroupCold } from './shared/derive';
 import { SpeakerCardBase, type PlaylistStatus } from './shared/speaker-card-base';
 import * as media from './shared/media-services';
 import * as sp from './spotifyplus/services';
+import * as sc from './spotcast/services';
 import {
   EMPTY_HISTORY,
   applyMeta,
   entriesToValidate,
   fillWithFavorites,
   isHistoryStore,
+  markOwned,
   markValidated,
   mergeRecent,
   missingMeta,
+  noteObserved,
   noteStarted,
+  ownedButGone,
   prune,
   removeEntries,
   sortedPlaylists,
@@ -34,10 +38,17 @@ const SCRIPT_CAP_MS = 360_000; // hard cap for start_script runs
 const SCRIPT_GRACE_MS = 5_000; // Cast state lag after the script finishes
 const REFRESH_AFTER_START_MS = 60_000;
 const REFRESH_INTERVAL_MS = 10 * 60_000;
-const FAVORITES_TTL_MS = 60 * 60_000;
+/**
+ * Spotify counts a small daily quota for playlist endpoints per developer account, shared by
+ * every integration and every open dashboard. The library is therefore fetched rarely and the
+ * result is cached in HA user data so all instances (phone, tablet, browser tabs) share it.
+ */
+const FAVORITES_TTL_MS = 12 * 60 * 60_000;
 const MAX_META_LOOKUPS_PER_REFRESH = 5;
 const VALIDATE_EVERY_MS = 24 * 60 * 60_000;
 const MAX_VALIDATIONS_PER_REFRESH = 5;
+/** Spotcast backend: playback observations closer than this count as the same listening session. */
+const SESSION_GAP_MS = 20 * 60_000;
 
 interface Starting {
   uri: string;
@@ -66,6 +77,10 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
   private _startTimer?: number;
   private _scriptDoneTimer?: number;
   private _historyLoaded = false;
+  /** Spotcast backend: Spotify user id, for recognising the user's own (deleted) playlists */
+  private _accountId: string | null = null;
+  /** Spotcast backend: playlist context last observed playing, for the now-playing subtitle */
+  private _lastContextUri: string | null = null;
 
   protected get section(): SpNormalizedConfig | undefined {
     return this._config;
@@ -77,10 +92,20 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
     return this._config?.accent ?? '';
   }
   protected override extraEntities(): string[] {
-    return this._config ? [this._config.spotifyplus_entity] : [];
+    const cfg = this._config;
+    return cfg?.backend === 'spotifyplus' ? [cfg.spotifyplus_entity] : [];
   }
   protected override ticking(hass: HomeAssistant): boolean {
-    return !!this._starting || super.ticking(hass) || hass.states[this._config?.spotifyplus_entity ?? '']?.state === 'playing';
+    const cfg = this._config;
+    const spPlaying = cfg?.backend === 'spotifyplus' && hass.states[cfg.spotifyplus_entity]?.state === 'playing';
+    return !!this._starting || super.ticking(hass) || spPlaying;
+  }
+
+  /** Name shown for the speaker group: the configured device name, else the Cast entity's name. */
+  private _groupLabel(hass: HomeAssistant): string {
+    const cfg = this._config!;
+    const fn = hass.states[cfg.cast_group_entity]?.attributes.friendly_name;
+    return cfg.device_name || (typeof fn === 'string' && fn) || 'speaker group';
   }
 
   private get _playerEntity(): string {
@@ -151,9 +176,55 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
   }
 
   private async _ensureFavorites(hass: HomeAssistant, cfg: SpNormalizedConfig): Promise<void> {
-    if (Date.now() - this._favoritesAt < FAVORITES_TTL_MS) return;
-    this._favorites = await sp.getPlaylistFavorites(hass, cfg.spotifyplus_entity);
-    this._favoritesAt = Date.now();
+    const now = Date.now();
+    if (now - this._favoritesAt < FAVORITES_TTL_MS) return;
+    const key = `${cfg.history_key}:library`;
+    if (!this._favoritesAt) {
+      // another instance may have fetched the library recently
+      const cached = await sp.loadUserData<{ at?: number; backend?: string; items?: sp.PlaylistMeta[] }>(hass, key);
+      if (cached && typeof cached.at === 'number' && cached.backend === cfg.backend && Array.isArray(cached.items) && now - cached.at < FAVORITES_TTL_MS) {
+        this._favorites = cached.items;
+        this._favoritesAt = cached.at;
+        return;
+      }
+    }
+    this._favorites =
+      cfg.backend === 'spotcast'
+        ? await sc.getPlaylists(hass, cfg.spotcast_account || undefined)
+        : await sp.getPlaylistFavorites(hass, cfg.spotifyplus_entity);
+    this._favoritesAt = now;
+    await sp.saveUserData(hass, key, { at: now, backend: cfg.backend, items: this._favorites });
+  }
+
+  /**
+   * The playlist endpoints have the smallest Spotify quota; when they are exhausted the
+   * history must still refresh and render, so a library failure only skips the metadata steps.
+   */
+  private async _tryFavorites(hass: HomeAssistant, cfg: SpNormalizedConfig): Promise<boolean> {
+    try {
+      await this._ensureFavorites(hass, cfg);
+      return true;
+    } catch (e) {
+      console.warn('multiroom-spotify-card: playlist library unavailable, keeping the cached history:', errorText(e));
+      return this._favorites.length > 0;
+    }
+  }
+
+  /**
+   * Spotcast backend: no "recently played" API. The history is built from the card's own
+   * starts plus the playback context Spotcast reports at each refresh (any device, any app),
+   * one API call per refresh.
+   */
+  private async _observePlayback(hass: HomeAssistant, cfg: SpNormalizedConfig, store: HistoryStore): Promise<HistoryStore> {
+    // Only ask Spotify while the Cast group is actually playing Spotify (free to check), so an
+    // idle house costs nothing.
+    const g = hass.states[cfg.cast_group_entity];
+    const app = typeof g?.attributes.app_name === 'string' ? g.attributes.app_name : '';
+    if (g?.state !== 'playing' || !/spotify/i.test(app)) return store;
+    const ctx = await sc.getPlaybackContext(hass, cfg.spotcast_account || undefined);
+    if (!ctx.isPlaying) return store;
+    this._lastContextUri = ctx.contextUri;
+    return noteObserved(store, ctx.contextUri, Date.now(), SESSION_GAP_MS);
   }
 
   private async _refresh(): Promise<void> {
@@ -174,11 +245,21 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
         this._historyLoaded = true;
       }
       const before = this._history;
-      const recent = await sp.getRecentTracks(hass, cfg.spotifyplus_entity, before.lastSeen);
-      let store = mergeRecent(before, recent);
-      await this._ensureFavorites(hass, cfg);
-      store = await this._fillMeta(hass, cfg, store);
-      store = await this._dropDeleted(hass, cfg, store);
+      let store: HistoryStore;
+      if (cfg.backend === 'spotcast') {
+        store = await this._observePlayback(hass, cfg, before);
+        if (await this._tryFavorites(hass, cfg)) {
+          store = await this._fillMeta(hass, cfg, store);
+          store = await this._dropDeletedSpotcast(hass, cfg, store);
+        }
+      } else {
+        const recent = await sp.getRecentTracks(hass, cfg.spotifyplus_entity, before.lastSeen);
+        store = mergeRecent(before, recent);
+        if (await this._tryFavorites(hass, cfg)) {
+          store = await this._fillMeta(hass, cfg, store);
+          store = await this._dropDeleted(hass, cfg, store);
+        }
+      }
       store = prune(store);
       this._history = store;
       this._plStatus = 'ready';
@@ -208,7 +289,8 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
     const found: sp.PlaylistMeta[] = [];
     for (const uri of missing.slice(0, MAX_META_LOOKUPS_PER_REFRESH)) {
       try {
-        const meta = await sp.getPlaylistMeta(hass, cfg.spotifyplus_entity, uri);
+        // SpotifyPlus: one API call per playlist. Spotcast: Spotify's public oEmbed endpoint, no quota.
+        const meta = cfg.backend === 'spotcast' ? await sc.oembedMeta(uri) : await sp.getPlaylistMeta(hass, cfg.spotifyplus_entity, uri);
         if (meta) found.push(meta);
         else found.push({ uri, name: 'Playlist', image: null });
       } catch {
@@ -216,6 +298,24 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
       }
     }
     return applyMeta(store, found);
+  }
+
+  /**
+   * Spotcast backend: a playlist the user owns that has left their library was deleted in
+   * Spotify (deleting only unfollows it). Ownership is learnt while it is still in the library.
+   */
+  private async _dropDeletedSpotcast(hass: HomeAssistant, cfg: SpNormalizedConfig, store: HistoryStore): Promise<HistoryStore> {
+    if (!this._favorites.length) return store;
+    if (!this._accountId) {
+      try {
+        this._accountId = await sc.getAccountId(hass, cfg.spotcast_account || undefined);
+      } catch {
+        return store;
+      }
+    }
+    if (!this._accountId) return store;
+    store = markOwned(store, this._favorites, this._accountId);
+    return removeEntries(store, ownedButGone(store, new Set(this._favorites.map((f) => f.uri))));
   }
 
   /**
@@ -259,13 +359,16 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
     const hass = this._hass;
     const cfg = this._config;
     if (!hass || !cfg) return;
-    const spState = hass.states[cfg.spotifyplus_entity]?.state;
-    if (!spState || spState === 'unavailable' || spState === 'unknown') {
-      this.showToast(`${cfg.spotifyplus_entity} is unavailable. Check the SpotifyPlus integration.`);
-      return;
+    const label = this._groupLabel(hass);
+    if (cfg.backend === 'spotifyplus') {
+      const spState = hass.states[cfg.spotifyplus_entity]?.state;
+      if (!spState || spState === 'unavailable' || spState === 'unknown') {
+        this.showToast(`${cfg.spotifyplus_entity} is unavailable. Check the SpotifyPlus integration.`);
+        return;
+      }
     }
     if (this._starting) {
-      this.showToast(`Still starting on ${cfg.device_name}…`);
+      this.showToast(`Still starting on ${label}…`);
       return;
     }
     this.applyDefaultPresetIfCold(hass, isGroupCold(hass, cfg.cast_group_entity));
@@ -276,7 +379,7 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
     this._startTimer = window.setTimeout(() => {
       if (this._starting?.uri === pl.uri) {
         this._starting = null;
-        this.showToast(`${cfg.device_name} did not start within 60 s. Check the speakers and try again.`, 6000);
+        this.showToast(`${label} did not start within 60 s. Check the speakers and try again.`, 6000);
       }
     }, START_TIMEOUT_MS);
     if (cfg.start_script) {
@@ -287,18 +390,34 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
       this._startTimer = window.setTimeout(() => {
         if (this._starting?.uri === pl.uri) {
           this._starting = null;
-          this.showToast(`${cfg.device_name} did not start within 6 min. Check the speakers and try again.`, 6000);
+          this.showToast(`${label} did not start within 6 min. Check the speakers and try again.`, 6000);
         }
       }, SCRIPT_CAP_MS);
       sp.startViaScript(hass, cfg.start_script, {
         context_uri: pl.uri,
-        device_name: cfg.device_name,
+        device_name: label,
         group_entity: cfg.cast_group_entity,
         shuffle: cfg.shuffle,
       })
         .then(() => this._scheduleRefresh(REFRESH_AFTER_START_MS))
         .catch((e: unknown) => {
           this._starting = null;
+          this.showToast(errorText(e), 8000);
+        });
+      return;
+    }
+    if (cfg.backend === 'spotcast') {
+      // Spotcast reaches the group through HA's own Cast connection (always the current
+      // leader), launches the Spotify app, logs the group in and transfers playback.
+      // The call rejects with Spotcast's reason when the group cannot be started.
+      sc.playMedia(hass, cfg.cast_group_entity, pl.uri, cfg.shuffle, cfg.spotcast_account || undefined)
+        .then(() => {
+          this._lastContextUri = pl.uri;
+          this._scheduleRefresh(REFRESH_AFTER_START_MS);
+        })
+        .catch((e: unknown) => {
+          this._starting = null;
+          if (this._startTimer) window.clearTimeout(this._startTimer);
           this.showToast(errorText(e), 8000);
         });
       return;
@@ -360,7 +479,7 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
         if (this._starting?.uri !== uri) return;
         this._starting = null;
         if (this._startTimer) window.clearTimeout(this._startTimer);
-        this.showToast(`${cfg.device_name} did not start. Check the speakers and the Home Assistant log.`, 8000);
+        this.showToast(`${this._groupLabel(hass)} did not start. Check the speakers and the Home Assistant log.`, 8000);
       }, SCRIPT_GRACE_MS);
     }
   }
@@ -376,11 +495,13 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
     const now = Date.now();
     const speakers = this.speakers(hass, now);
     const np = deriveNowPlaying(hass, this._playerEntity);
-    const spAttrs = hass.states[cfg.spotifyplus_entity]?.attributes ?? {};
+    const spAttrs = cfg.backend === 'spotifyplus' ? (hass.states[cfg.spotifyplus_entity]?.attributes ?? {}) : {};
     const playlistName =
       (typeof spAttrs.media_playlist === 'string' && spAttrs.media_playlist) ||
+      this._history.entries[this._lastContextUri ?? '']?.name ||
       this._history.entries[this._activeUri ?? '']?.name ||
       '';
+    const label = this._groupLabel(hass);
     const starting = this._starting;
     const startingName = starting ? this._history.entries[starting.uri]?.name || 'playlist' : '';
     const unavailable = np.found && (np.state === 'unavailable' || np.state === 'unknown');
@@ -400,7 +521,7 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
         onRetry: () => void this._refresh(),
       });
     const nowBar = this.renderNowBar(np, now, {
-        title: starting ? `Starting on ${cfg.device_name}…` : undefined,
+        title: starting ? `Starting on ${label}…` : undefined,
         subtitle: starting
           ? `${startingName} · ${Math.round((now - starting.since) / 1000)} s`
           : !np.found || unavailable
@@ -421,6 +542,6 @@ window.customCards = window.customCards || [];
 window.customCards.push({
   type: 'multiroom-spotify-card',
   name: 'Multiroom Spotify Card',
-  description: 'Start Spotify playlists on a Chromecast speaker group as a Spotify Connect session, via SpotifyPlus.',
+  description: 'Start Spotify playlists on a Chromecast speaker group as a Spotify Connect session, via Spotcast or SpotifyPlus.',
   preview: false,
 });
