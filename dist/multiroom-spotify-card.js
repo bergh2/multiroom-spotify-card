@@ -2377,7 +2377,7 @@ async function J(i, t, e) {
   await i.callWS({ type: "frontend/set_user_data", key: t, value: e });
 }
 const kt = (i, t) => i.callWS(t), $t = (i, t) => t ? { ...i, account: t } : i;
-async function fs(i, t, e = 500) {
+async function fs(i, t, e = 50) {
   const s = await kt(i, $t({ type: "spotcast/playlists", limit: e }, t));
   return ((s == null ? void 0 : s.playlists) ?? []).map(xt).filter((r) => !!r);
 }

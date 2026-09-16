@@ -24,8 +24,12 @@ export interface PlaybackContext {
 const ws = <T>(hass: HomeAssistant, msg: Dict) => hass.callWS<T>(msg);
 const withAccount = (msg: Dict, account?: string): Dict => (account ? { ...msg, account } : msg);
 
-/** The user's playlists (followed and owned), in Spotify's order, with artwork and owner. */
-export async function getPlaylists(hass: HomeAssistant, account?: string, limit = 500): Promise<PlaylistMeta[]> {
+/**
+ * The user's playlists (followed and owned), in Spotify's order, with artwork and owner.
+ * Spotify pages 50 at a time and every page is one call against the smallest quota
+ * bucket, so the default fetches a single page; names of older playlists come from oEmbed.
+ */
+export async function getPlaylists(hass: HomeAssistant, account?: string, limit = 50): Promise<PlaylistMeta[]> {
   const res = await ws<{ playlists?: Dict[] }>(hass, withAccount({ type: 'spotcast/playlists', limit }, account));
   return (res?.playlists ?? []).map(toPlaylistMeta).filter((p): p is PlaylistMeta => !!p);
 }
