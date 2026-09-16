@@ -1,6 +1,6 @@
 # Multiroom Spotify Card for Home Assistant
 
-Dashboard cards for starting Spotify playlists on a multi-room Chromecast
+A dashboard card for starting Spotify playlists on a multi-room Chromecast
 speaker group, with a volume slider per room, a master volume, and mood
 presets. One tap on a playlist, and the music plays in sync in every room you
 have switched on.
@@ -14,24 +14,24 @@ real Spotify Connect session that the Spotify app can take over afterwards.
 
 ## Features
 
-- **Playlists**: recently played or most played, as tiles or a compact list. The SpotifyPlus card reads Spotify's play history (from every app, not only this card) and fills empty slots with your own playlists.
+- **Playlists**: recently played or most played, as tiles or a compact list, built from what the house actually plays (from every app, not only this card) and topped up with your own playlists.
 - **Speakers**: one row per room with its own volume slider and on/off toggle, a master row that scales every room proportionally, and a speaker picker sheet.
 - **Presets**: "Focus", "Dinner", "Party"… each sets the volume of the rooms it wants and mutes the rest. The active preset is derived from the live speaker state, so the card never claims a mood that isn't true. An optional default preset is applied when music starts from a cold group.
-- **Now playing**: artwork, track, artist, playlist, transport and seek. On the SpotifyPlus card this comes from the Cast group entity, which costs no Spotify API calls.
+- **Now playing**: artwork, track, artist, playlist, transport and seek, read from the Cast group entity, which costs no Spotify API calls.
 - **Layout**: one column on a phone, two columns (playlists left, player and speakers right) on a tablet in landscape or on a desktop, automatically.
 - Dark and light appearance following the Home Assistant theme; visual editor for the main options.
 
 ## How multi-room works
 
 Chromecast has no API for dynamic grouping, so synchronized playback uses a
-**speaker group created in the Google Home app**. The cards always play to that
+**speaker group created in the Google Home app**. The card always plays to that
 group. Speaker rows and presets only mute/unmute and set the volume of each
 speaker's own Google Cast entity, so "off" means "muted in the group". Add or
 remove rooms in Google Home; the card follows.
 
 ## Prerequisites
 
-Common to both cards:
+Always:
 
 - **Home Assistant** 2024.x or newer (developed on 2026.x).
 - **Spotify Premium**. Spotify Connect and playlist playback on Cast devices need it.
@@ -58,15 +58,14 @@ For `multiroom-spotify-card` with **SpotifyPlus** (alternative: richer play hist
 ### HACS (recommended)
 
 1. HACS → three-dot menu → **Custom repositories** → add `https://github.com/bergh2/multiroom-spotify-card` with type **Dashboard**.
-2. Search for **Multiroom Spotify Card** and install it. HACS registers the resource `/hacsfiles/multiroom-spotify-card/multiroom-spotify-card.js`, which contains both cards.
+2. Search for **Multiroom Spotify Card** and install it. HACS registers the resource `/hacsfiles/multiroom-spotify-card/multiroom-spotify-card.js`.
 3. Reload the browser, then add a card (search for "Multiroom Spotify Card").
 
 ### Manual
 
 Copy `dist/multiroom-spotify-card.js` to `config/www/multiroom-spotify-card/` and add
 `/local/multiroom-spotify-card/multiroom-spotify-card.js` as a **JavaScript module**
-resource under Settings → Dashboards → Resources. (`dist/` also holds the two
-cards as separate files if you only want one.)
+resource under Settings → Dashboards → Resources.
 
 ## Configuration: `multiroom-spotify-card`
 
