@@ -799,6 +799,10 @@ function $(s) {
   }
   return String(s);
 }
+function ns(s, t = Date.now()) {
+  const e = /retry[- ]after:?\s*(\d+)\s*s|try again in\s*(\d+)\s*s/i.exec(s), i = e ? Number(e[1] ?? e[2]) : NaN;
+  return Number.isFinite(i) && i > 0 ? t + i * 1e3 : null;
+}
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -855,7 +859,7 @@ const v = be(class extends we {
  * Copyright 2018 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const xe = "important", ns = " !" + xe, W = be(class extends we {
+const xe = "important", as = " !" + xe, W = be(class extends we {
   constructor(s) {
     var t;
     if (super(s), s.type !== ve.ATTRIBUTE || s.name !== "style" || ((t = s.strings) == null ? void 0 : t.length) > 2) throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.");
@@ -874,13 +878,13 @@ const xe = "important", ns = " !" + xe, W = be(class extends we {
       const r = t[i];
       if (r != null) {
         this.ft.add(i);
-        const n = typeof r == "string" && r.endsWith(ns);
+        const n = typeof r == "string" && r.endsWith(as);
         i.includes("-") || n ? e.setProperty(i, n ? r.slice(0, -11) : r, n ? xe : "") : e[i] = r;
       }
     }
     return P;
   }
-}), as = St`
+}), os = St`
   :host {
     display: block;
     --page: #08080a;
@@ -1803,7 +1807,7 @@ const xe = "important", ns = " !" + xe, W = be(class extends we {
   volume: w`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"></path><path d="M16 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>`,
   check: w`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4.5 4.5L19 7"></path></svg>`
 };
-function os(s, t) {
+function ls(s, t) {
   if (s.position === null) return 0;
   let e = s.position;
   if (s.playing && s.positionUpdatedAt) {
@@ -1813,7 +1817,7 @@ function os(s, t) {
   return s.duration !== null && (e = Math.min(e, s.duration)), Math.max(0, e);
 }
 const q = (s, t, e, i) => s.callService("media_player", t, i, { entity_id: e }), ke = (s, t) => q(s, "media_play_pause", t), $e = (s, t) => q(s, "media_next_track", t), Se = (s, t) => q(s, "media_previous_track", t), Ae = (s, t, e) => q(s, "media_seek", t, { seek_position: Math.max(0, Math.round(e)) }), Pe = (s, t, e) => q(s, "volume_set", t, { volume_level: Math.max(0, Math.min(100, e)) / 100 }), j = (s, t, e) => q(s, "volume_mute", t, { is_volume_muted: e });
-async function ls(s, t, e) {
+async function cs(s, t, e) {
   const i = [], r = [];
   for (const n of t) {
     if (!n.available) continue;
@@ -1847,10 +1851,10 @@ function Jt(s, t) {
     i = o, r = !0, n || (n = setTimeout(a, Math.max(0, t - c)));
   };
 }
-var cs = Object.defineProperty, Ce = (s, t, e, i) => {
+var ps = Object.defineProperty, Ce = (s, t, e, i) => {
   for (var r = void 0, n = s.length - 1, a; n >= 0; n--)
     (a = s[n]) && (r = a(t, e, r) || r);
-  return r && cs(t, e, r), r;
+  return r && ps(t, e, r), r;
 };
 const et = 1500, Qt = 150, Ot = class Ot extends O {
   constructor() {
@@ -1946,7 +1950,7 @@ const et = 1500, Qt = 150, Ot = class Ot extends O {
         const r = e.levels[i.entity];
         this._bump(i.entity, r === void 0 ? { on: !1 } : { on: !0, vol: r }, et + 1e3);
       }
-      this.run(ls(this._hass, t, e));
+      this.run(cs(this._hass, t, e));
     }
   }
   /** Apply the configured default preset if the group is cold and nothing was touched. */
@@ -2043,7 +2047,7 @@ const et = 1500, Qt = 150, Ot = class Ot extends O {
       if (e < i.until && i.stamp === t.positionUpdatedAt) return i.pos;
       this._seek = null;
     }
-    return os(t, e);
+    return ls(t, e);
   }
   // ---- misc --------------------------------------------------------------
   run(t) {
@@ -2249,7 +2253,7 @@ const et = 1500, Qt = 150, Ot = class Ot extends O {
     </div>`;
   }
 };
-Ot.styles = as;
+Ot.styles = os;
 let L = Ot;
 Ce([
   m()
@@ -2257,16 +2261,16 @@ Ce([
 Ce([
   m()
 ], L.prototype, "_toast");
-const ps = 300 * 1e3, te = /* @__PURE__ */ new Map(), us = {
+const us = 300 * 1e3, te = /* @__PURE__ */ new Map(), ds = {
   last_played: "last_played_desc",
   play_count: "play_count_desc"
 };
-async function ds(s) {
+async function hs(s) {
   const t = await s.callWS({ type: "config_entries/get", domain: "music_assistant" }), e = Array.isArray(t) ? t : [], i = e.find((r) => r.state === "loaded") ?? e[0];
   if (!i) throw new Error("Music Assistant integration not found");
   return i.entry_id;
 }
-function hs(s) {
+function fs(s) {
   if (!s) return null;
   if (typeof s == "string") {
     const t = s.trim();
@@ -2281,44 +2285,44 @@ function hs(s) {
   }
   return null;
 }
-function fs(s) {
+function ys(s) {
   if (!Array.isArray(s)) return [];
   const t = [];
   for (const e of s) {
     if (!e || typeof e != "object") continue;
     const i = e;
-    typeof i.uri != "string" || typeof i.name != "string" || !i.uri || t.push({ uri: i.uri, name: i.name, image: hs(i.image) });
+    typeof i.uri != "string" || typeof i.name != "string" || !i.uri || t.push({ uri: i.uri, name: i.name, image: fs(i.image) });
   }
   return t;
 }
-function ys(s, t, e) {
+function ms(s, t, e) {
   return `${s}|${t}|${e}`;
 }
-async function ms(s, t) {
-  const e = ys(t.entryId, t.sort, t.limit), i = te.get(e);
-  if (!t.force && i && Date.now() - i.at < ps) return i.items;
+async function _s(s, t) {
+  const e = ms(t.entryId, t.sort, t.limit), i = te.get(e);
+  if (!t.force && i && Date.now() - i.at < us) return i.items;
   const r = await s.callService(
     "music_assistant",
     "get_library",
-    { config_entry_id: t.entryId, media_type: "playlist", order_by: us[t.sort], limit: t.limit },
+    { config_entry_id: t.entryId, media_type: "playlist", order_by: ds[t.sort], limit: t.limit },
     void 0,
     !1,
     !0
-  ), n = (r && typeof r == "object" ? r.response : void 0) ?? {}, a = fs(n.items);
+  ), n = (r && typeof r == "object" ? r.response : void 0) ?? {}, a = ys(n.items);
   return te.set(e, { at: Date.now(), items: a }), a;
 }
-const _s = (s, t, e) => s.callService(
+const gs = (s, t, e) => s.callService(
   "music_assistant",
   "play_media",
   { media_id: e, media_type: "playlist", enqueue: "replace" },
   { entity_id: t }
 );
-var gs = Object.defineProperty, vs = Object.getOwnPropertyDescriptor, ct = (s, t, e, i) => {
-  for (var r = i > 1 ? void 0 : i ? vs(t, e) : t, n = s.length - 1, a; n >= 0; n--)
+var vs = Object.defineProperty, bs = Object.getOwnPropertyDescriptor, ct = (s, t, e, i) => {
+  for (var r = i > 1 ? void 0 : i ? bs(t, e) : t, n = s.length - 1, a; n >= 0; n--)
     (a = s[n]) && (r = (i ? a(t, e, r) : a(r)) || r);
-  return i && r && gs(t, e, r), r;
+  return i && r && vs(t, e, r), r;
 };
-const bs = [
+const ws = [
   {
     name: "group_entity",
     required: !0,
@@ -2350,7 +2354,7 @@ const bs = [
   { name: "title", selector: { text: {} } },
   { name: "accent", selector: { text: {} } },
   { name: "ma_config_entry_id", selector: { text: {} } }
-], ws = {
+], xs = {
   group_entity: "Music Assistant player for the Cast group",
   speakers: "Speakers (Google Cast entities)",
   playlist_layout: "Playlist layout",
@@ -2413,8 +2417,8 @@ let H = class extends O {
       <ha-form
         .hass=${this.hass}
         .data=${this._formData()}
-        .schema=${bs}
-        .computeLabel=${(s) => ws[s.name] ?? s.name}
+        .schema=${ws}
+        .computeLabel=${(s) => xs[s.name] ?? s.name}
         @value-changed=${this._valueChanged}
       ></ha-form>
       <div class="hint">
@@ -2447,12 +2451,12 @@ ct([
 H = ct([
   lt("multiroom-spotify-card-ma-editor")
 ], H);
-var xs = Object.defineProperty, ks = Object.getOwnPropertyDescriptor, F = (s, t, e, i) => {
-  for (var r = i > 1 ? void 0 : i ? ks(t, e) : t, n = s.length - 1, a; n >= 0; n--)
+var ks = Object.defineProperty, $s = Object.getOwnPropertyDescriptor, F = (s, t, e, i) => {
+  for (var r = i > 1 ? void 0 : i ? $s(t, e) : t, n = s.length - 1, a; n >= 0; n--)
     (a = s[n]) && (r = (i ? a(t, e, r) : a(r)) || r);
-  return i && r && xs(t, e, r), r;
+  return i && r && ks(t, e, r), r;
 };
-const $s = 3e3;
+const Ss = 3e3;
 let D = class extends L {
   constructor() {
     super(...arguments), this._playlists = [], this._plStatus = "idle", this._plError = "", this._activeUri = null, this._entryId = "", this._fetchSeq = 0;
@@ -2503,8 +2507,8 @@ let D = class extends L {
     const i = ++this._fetchSeq;
     this._playlists.length || (this._plStatus = "loading");
     try {
-      this._entryId || (this._entryId = await ds(t));
-      const r = await ms(t, { entryId: this._entryId, sort: e.playlist_sort, limit: e.playlist_count, force: s });
+      this._entryId || (this._entryId = await hs(t));
+      const r = await _s(t, { entryId: this._entryId, sort: e.playlist_sort, limit: e.playlist_count, force: s });
       if (i !== this._fetchSeq) return;
       this._playlists = r, this._plStatus = "ready", this._plError = "";
     } catch (r) {
@@ -2522,8 +2526,8 @@ let D = class extends L {
       return;
     }
     this._activeUri = s.uri, this._saveActive(e.group_entity, s.uri), this.applyDefaultPresetIfCold(t, ge(t, e.group_entity)), this.run(
-      _s(t, e.group_entity, s.uri).then(() => {
-        this._refetchTimer && window.clearTimeout(this._refetchTimer), this._refetchTimer = window.setTimeout(() => void this._ensurePlaylists(!0), $s);
+      gs(t, e.group_entity, s.uri).then(() => {
+        this._refetchTimer && window.clearTimeout(this._refetchTimer), this._refetchTimer = window.setTimeout(() => void this._ensurePlaylists(!0), Ss);
       })
     );
   }
@@ -2601,7 +2605,7 @@ window.customCards.push({
   preview: !1
 });
 const b = "multiroom-spotify-card";
-function Ss(s) {
+function As(s) {
   (!s || typeof s != "object") && f(b, "invalid configuration");
   const t = s.backend ?? "spotifyplus";
   t !== "spotifyplus" && t !== "spotcast" && f(b, 'backend must be "spotifyplus" or "spotcast"');
@@ -2655,7 +2659,7 @@ function Tt(s) {
   const r = _(s, "owner", "Owner"), n = r ? _(r, "id", "Id") : void 0, a = { uri: t, name: e, image: typeof i == "string" && i ? i : null };
   return typeof n == "string" && n && (a.ownerId = n), a;
 }
-function As(s) {
+function Ps(s) {
   const t = [];
   for (const e of Et(pt(s))) {
     const i = _(e, "context", "Context"), r = i ? _(i, "uri", "Uri") ?? null : null, n = _(e, "played_at_ms", "PlayedAtMS"), a = _(e, "played_at", "PlayedAt"), o = typeof n == "number" ? n : typeof a == "string" ? Date.parse(a) : NaN;
@@ -2666,13 +2670,13 @@ function As(s) {
   return t;
 }
 const ut = (s, t, e) => s.callService("spotifyplus", t, e, void 0, !1, !0);
-async function Ps(s, t, e) {
+async function Cs(s, t, e) {
   const i = { entity_id: t, limit: 50 };
   e && e > 0 && (i.after = e);
   const r = await ut(s, "get_player_recent_tracks", i);
-  return As(r).sort((n, a) => a.playedAt - n.playedAt);
+  return Ps(r).sort((n, a) => a.playedAt - n.playedAt);
 }
-async function Cs(s, t, e = 500) {
+async function Es(s, t, e = 500) {
   const i = await ut(s, "get_playlist_favorites", { entity_id: t, limit: 50, limit_total: e });
   return Et(pt(i)).map(Tt).filter((r) => !!r);
 }
@@ -2680,22 +2684,22 @@ async function ee(s, t, e) {
   const i = e.split(":").pop() ?? e, r = await ut(s, "get_playlist", { entity_id: t, playlist_id: i }), n = Tt(pt(r));
   return n ? { ...n, uri: e } : null;
 }
-const Es = (s, t, e, i, r) => s.callService(
+const Ts = (s, t, e, i, r) => s.callService(
   "spotifyplus",
   "player_media_play_context",
   { entity_id: t, context_uri: e, device_id: i, shuffle: r },
   void 0,
   !1
-), Ts = (s, t, e) => s.callService("script", t.replace(/^script\./, ""), e, void 0, !1);
-async function Ms(s, t, e = !1) {
+), Ms = (s, t, e) => s.callService("script", t.replace(/^script\./, ""), e, void 0, !1);
+async function Us(s, t, e = !1) {
   const i = await ut(s, "get_spotify_connect_devices", { entity_id: t, refresh: e });
   return Et(pt(i)).map((r) => _(r, "name", "Name")).filter((r) => typeof r == "string");
 }
-async function Us(s, t, e, i = 45e3) {
+async function Os(s, t, e, i = 45e3) {
   const r = Date.now() + i;
   for (; Date.now() < r; ) {
     try {
-      if ((await Ms(s, t, !1)).some((a) => a.toLowerCase() === e.toLowerCase()))
+      if ((await Us(s, t, !1)).some((a) => a.toLowerCase() === e.toLowerCase()))
         return await new Promise((a) => setTimeout(a, 5e3)), !0;
     } catch {
     }
@@ -2703,8 +2707,8 @@ async function Us(s, t, e, i = 45e3) {
   }
   return !1;
 }
-const Os = (s, t) => s.callService("spotifyplus", "get_spotify_connect_devices", { entity_id: t, refresh: !0 }, void 0, !1, !0);
-async function zs(s, t, e = () => {
+const zs = (s, t) => s.callService("spotifyplus", "get_spotify_connect_devices", { entity_id: t, refresh: !0 }, void 0, !1, !0);
+async function Ds(s, t, e = () => {
   var r;
   return (r = s.states[t]) == null ? void 0 : r.state;
 }, i = 3e4) {
@@ -2728,11 +2732,11 @@ async function st(s, t, e) {
   await s.callWS({ type: "frontend/set_user_data", key: t, value: e });
 }
 const Mt = (s, t) => s.callWS(t), Ut = (s, t) => t ? { ...s, account: t } : s;
-async function Ds(s, t, e = 500) {
+async function Is(s, t, e = 500) {
   const i = await Mt(s, Ut({ type: "spotcast/playlists", limit: e }, t));
   return ((i == null ? void 0 : i.playlists) ?? []).map(Tt).filter((r) => !!r);
 }
-function Is(s) {
+function Rs(s) {
   const t = (s && typeof s == "object" ? s.state : void 0) ?? {}, e = t.context, i = t.device, r = t.item;
   return {
     contextUri: e && typeof e.uri == "string" ? e.uri : null,
@@ -2741,21 +2745,21 @@ function Is(s) {
     trackName: r && typeof r.name == "string" ? r.name : ""
   };
 }
-async function Rs(s, t) {
-  return Is(await Mt(s, Ut({ type: "spotcast/player" }, t)));
-}
 async function js(s, t) {
+  return Rs(await Mt(s, Ut({ type: "spotcast/player" }, t)));
+}
+async function Ns(s, t) {
   const e = await Mt(s, { type: "spotcast/accounts" }), i = (e == null ? void 0 : e.accounts) ?? [], r = t ? i.find((n) => n.entry_id === t) : i.find((n) => n.is_default) ?? i[0];
   return (r == null ? void 0 : r.spotify_id) ?? null;
 }
-const Ns = (s, t, e, i, r) => s.callService(
+const Ls = (s, t, e, i, r) => s.callService(
   "spotcast",
   "play_media",
   Ut({ media_player: { entity_id: t }, spotify_uri: e, data: { shuffle: i } }, r),
   void 0,
   !1
 );
-async function Ls(s, t = fetch) {
+async function Hs(s, t = fetch) {
   try {
     const e = await t(`https://open.spotify.com/oembed?url=${encodeURIComponent(s)}`);
     if (!e.ok) return null;
@@ -2769,7 +2773,7 @@ const se = { version: 1, lastSeen: 0, entries: {} };
 function Ee(s) {
   return typeof s == "string" && /^spotify:playlist:[A-Za-z0-9]+$/.test(s);
 }
-function Hs(s, t) {
+function Bs(s, t) {
   const e = { ...s.entries };
   let i = s.lastSeen;
   for (const r of t) {
@@ -2779,7 +2783,7 @@ function Hs(s, t) {
   }
   return { version: 1, lastSeen: i, entries: e };
 }
-function Bs(s, t, e) {
+function qs(s, t, e) {
   const i = s.entries[t.uri];
   return {
     ...s,
@@ -2789,7 +2793,7 @@ function Bs(s, t, e) {
     }
   };
 }
-function qs(s, t, e, i) {
+function Fs(s, t, e, i) {
   if (!Ee(t)) return s;
   const r = s.entries[t];
   return r && e - r.lastPlayed < i ? e <= r.lastPlayed ? s : { ...s, entries: { ...s.entries, [t]: { ...r, lastPlayed: e } } } : {
@@ -2800,7 +2804,7 @@ function qs(s, t, e, i) {
     }
   };
 }
-function Fs(s, t, e) {
+function Vs(s, t, e) {
   const i = { ...s.entries };
   let r = !1;
   for (const n of t) {
@@ -2809,7 +2813,7 @@ function Fs(s, t, e) {
   }
   return r ? { ...s, entries: i } : s;
 }
-function Vs(s, t) {
+function Ws(s, t) {
   return Object.values(s.entries).filter((e) => e.owned && !t.has(e.uri)).map((e) => e.uri);
 }
 function vt(s, t) {
@@ -2824,11 +2828,11 @@ function vt(s, t) {
 function ie(s) {
   return Object.values(s.entries).filter((t) => !t.name).map((t) => t.uri);
 }
-function Ws(s, t, e) {
+function Gs(s, t, e) {
   const i = Object.values(s.entries).filter((r) => r.name);
   return i.sort((r, n) => t === "play_count" && n.plays - r.plays || n.lastPlayed - r.lastPlayed), i.slice(0, e).map((r) => ({ uri: r.uri, name: r.name, image: r.image }));
 }
-function Gs(s, t, e) {
+function Ys(s, t, e) {
   if (s.length >= e) return s.slice(0, e);
   const i = new Set(s.map((n) => n.uri)), r = [...s];
   for (const n of t) {
@@ -2837,7 +2841,7 @@ function Gs(s, t, e) {
   }
   return r;
 }
-function Ys(s, t, e, i, r) {
+function Ks(s, t, e, i, r) {
   return Object.values(s.entries).filter((n) => !t.has(n.uri) && (n.validatedAt === void 0 || e - n.validatedAt > i)).sort((n, a) => (n.validatedAt ?? 0) - (a.validatedAt ?? 0)).slice(0, r).map((n) => n.uri);
 }
 function re(s, t) {
@@ -2846,13 +2850,13 @@ function re(s, t) {
   for (const r of t) r in e && (delete e[r], i = !0);
   return i ? { ...s, entries: e } : s;
 }
-function Ks(s, t, e) {
+function Zs(s, t, e) {
   const i = { ...s.entries };
   let r = !1;
   for (const n of t) i[n] && (i[n] = { ...i[n], validatedAt: e }, r = !0);
   return r ? { ...s, entries: i } : s;
 }
-function Zs(s, t = 200) {
+function Xs(s, t = 200) {
   const e = Object.values(s.entries);
   if (e.length <= t) return s;
   e.sort((r, n) => n.lastPlayed - r.lastPlayed);
@@ -2863,12 +2867,12 @@ function Zs(s, t = 200) {
 function bt(s) {
   return !!s && typeof s == "object" && s.version === 1 && typeof s.entries == "object";
 }
-var Xs = Object.defineProperty, Js = Object.getOwnPropertyDescriptor, dt = (s, t, e, i) => {
-  for (var r = i > 1 ? void 0 : i ? Js(t, e) : t, n = s.length - 1, a; n >= 0; n--)
+var Js = Object.defineProperty, Qs = Object.getOwnPropertyDescriptor, dt = (s, t, e, i) => {
+  for (var r = i > 1 ? void 0 : i ? Qs(t, e) : t, n = s.length - 1, a; n >= 0; n--)
     (a = s[n]) && (r = (i ? a(t, e, r) : a(r)) || r);
-  return i && r && Xs(t, e, r), r;
+  return i && r && Js(t, e, r), r;
 };
-const Qs = [
+const ti = [
   { name: "backend", selector: { select: { mode: "dropdown", options: [{ value: "spotifyplus", label: "SpotifyPlus" }, { value: "spotcast", label: "Spotcast (recommended)" }] } } },
   { name: "spotifyplus_entity", selector: { entity: { domain: "media_player", integration: "spotifyplus" } } },
   { name: "cast_group_entity", required: !0, selector: { entity: { domain: "media_player", integration: "cast" } } },
@@ -2900,7 +2904,7 @@ const Qs = [
   { name: "spotcast_account", selector: { text: {} } },
   { name: "title", selector: { text: {} } },
   { name: "accent", selector: { text: {} } }
-], ti = {
+], ei = {
   backend: "Starts playback and lists playlists via",
   spotifyplus_entity: "SpotifyPlus player (SpotifyPlus backend)",
   cast_group_entity: "Google Cast entity of the speaker group",
@@ -2977,8 +2981,8 @@ let B = class extends O {
       <ha-form
         .hass=${this.hass}
         .data=${this._formData()}
-        .schema=${Qs}
-        .computeLabel=${(s) => ti[s.name] ?? s.name}
+        .schema=${ti}
+        .computeLabel=${(s) => ei[s.name] ?? s.name}
         @value-changed=${this._valueChanged}
       ></ha-form>
       <div class="hint">
@@ -3011,16 +3015,12 @@ dt([
 B = dt([
   lt("multiroom-spotify-card-editor")
 ], B);
-var ei = Object.defineProperty, si = Object.getOwnPropertyDescriptor, C = (s, t, e, i) => {
-  for (var r = i > 1 ? void 0 : i ? si(t, e) : t, n = s.length - 1, a; n >= 0; n--)
+var si = Object.defineProperty, ii = Object.getOwnPropertyDescriptor, C = (s, t, e, i) => {
+  for (var r = i > 1 ? void 0 : i ? ii(t, e) : t, n = s.length - 1, a; n >= 0; n--)
     (a = s[n]) && (r = (i ? a(t, e, r) : a(r)) || r);
-  return i && r && ei(t, e, r), r;
+  return i && r && si(t, e, r), r;
 };
-const ne = 6e4, ii = 36e4, ri = 5e3, wt = 6e4, ae = 10 * 6e4, xt = 720 * 6e4, ni = 5, ai = 1440 * 6e4, oi = 5, li = 20 * 6e4;
-function ci(s, t = Date.now()) {
-  const e = /retry[- ]after:?\s*(\d+)\s*s|try again in\s*(\d+)\s*s/i.exec(s), i = e ? Number(e[1] ?? e[2]) : NaN;
-  return Number.isFinite(i) && i > 0 ? t + i * 1e3 : null;
-}
+const ne = 6e4, ri = 36e4, ni = 5e3, wt = 6e4, ae = 10 * 6e4, xt = 720 * 6e4, ai = 5, oi = 1440 * 6e4, li = 5, ci = 20 * 6e4;
 let k = class extends L {
   constructor() {
     super(...arguments), this._history = se, this._plStatus = "idle", this._plError = "", this._activeUri = null, this._starting = null, this._favorites = [], this._favoritesAt = 0, this._refreshing = !1, this._historyLoaded = !1, this._accountId = null, this._lastContextUri = null, this._backoffMs = 0;
@@ -3074,7 +3074,7 @@ let k = class extends L {
     };
   }
   setConfig(s) {
-    const t = this._config, e = Ss(s);
+    const t = this._config, e = As(s);
     this._config = e, (!t || t.history_key !== e.history_key || t.spotifyplus_entity !== e.spotifyplus_entity) && (this._historyLoaded = !1, this._history = se, this._plStatus = "idle", this._hass && this._refresh());
   }
   hassChanged(s, t) {
@@ -3094,8 +3094,8 @@ let k = class extends L {
   get _playlists() {
     const s = this._config;
     if (!s) return [];
-    const t = Ws(this._history, s.playlist_sort, s.playlist_count);
-    return s.fill_with_favorites ? Gs(t, this._favorites, s.playlist_count) : t;
+    const t = Gs(this._history, s.playlist_sort, s.playlist_count);
+    return s.fill_with_favorites ? Ys(t, this._favorites, s.playlist_count) : t;
   }
   async _ensureFavorites(s, t) {
     const e = Date.now();
@@ -3108,7 +3108,7 @@ let k = class extends L {
         return;
       }
     }
-    this._favorites = t.backend === "spotcast" ? await Ds(s, t.spotcast_account || void 0) : await Cs(s, t.spotifyplus_entity), this._favoritesAt = e, await st(s, i, { at: e, backend: t.backend, items: this._favorites });
+    this._favorites = t.backend === "spotcast" ? await Is(s, t.spotcast_account || void 0) : await Es(s, t.spotifyplus_entity), this._favoritesAt = e, await st(s, i, { at: e, backend: t.backend, items: this._favorites });
   }
   /**
    * The playlist endpoints have the smallest Spotify quota; when they are exhausted the
@@ -3120,7 +3120,7 @@ let k = class extends L {
     } catch (e) {
       const i = $(e);
       console.warn("multiroom-spotify-card: playlist library unavailable, keeping the cached history:", i);
-      const r = ci(i);
+      const r = ns(i);
       return r && (this._favoritesAt = r - xt, await st(s, `${t.history_key}:library`, { at: this._favoritesAt, backend: t.backend, items: this._favorites }).catch(() => {
       })), this._favorites.length > 0;
     }
@@ -3133,8 +3133,8 @@ let k = class extends L {
   async _observePlayback(s, t, e) {
     const i = s.states[t.cast_group_entity], r = typeof (i == null ? void 0 : i.attributes.app_name) == "string" ? i.attributes.app_name : "";
     if ((i == null ? void 0 : i.state) !== "playing" || !/spotify/i.test(r)) return e;
-    const n = await Rs(s, t.spotcast_account || void 0);
-    return n.isPlaying ? (this._lastContextUri = n.contextUri, qs(e, n.contextUri, Date.now(), li)) : e;
+    const n = await js(s, t.spotcast_account || void 0);
+    return n.isPlaying ? (this._lastContextUri = n.contextUri, Fs(e, n.contextUri, Date.now(), ci)) : e;
   }
   async _refresh() {
     const s = this._hass, t = this._config;
@@ -3150,10 +3150,10 @@ let k = class extends L {
         if (t.backend === "spotcast")
           i = await this._observePlayback(s, t, e), await this._tryFavorites(s, t) && (i = await this._fillMeta(s, t, i), i = await this._dropDeletedSpotcast(s, t, i));
         else {
-          const r = await Ps(s, t.spotifyplus_entity, e.lastSeen);
-          i = Hs(e, r), await this._tryFavorites(s, t) && (i = await this._fillMeta(s, t, i), i = await this._dropDeleted(s, t, i));
+          const r = await Cs(s, t.spotifyplus_entity, e.lastSeen);
+          i = Bs(e, r), await this._tryFavorites(s, t) && (i = await this._fillMeta(s, t, i), i = await this._dropDeleted(s, t, i));
         }
-        i = Zs(i), this._history = i, this._plStatus = "ready", this._plError = "", i !== e && await st(s, t.history_key, i), this._backoffMs = 0;
+        i = Xs(i), this._history = i, this._plStatus = "ready", this._plError = "", i !== e && await st(s, t.history_key, i), this._backoffMs = 0;
       } catch (e) {
         this._plStatus = "error", this._plError = $(e), this._backoffMs = Math.min(this._backoffMs ? this._backoffMs * 2 : 6e4, ae), this._scheduleRefresh(this._backoffMs);
       } finally {
@@ -3167,9 +3167,9 @@ let k = class extends L {
     if (!i.length) return e;
     await this._ensureFavorites(s, t), e = vt(e, this._favorites), i = ie(e);
     const r = [];
-    for (const n of i.slice(0, ni))
+    for (const n of i.slice(0, ai))
       try {
-        const a = t.backend === "spotcast" ? await Ls(n) : await ee(s, t.spotifyplus_entity, n);
+        const a = t.backend === "spotcast" ? await Hs(n) : await ee(s, t.spotifyplus_entity, n);
         a ? r.push(a) : r.push({ uri: n, name: "Playlist", image: null });
       } catch {
       }
@@ -3183,11 +3183,11 @@ let k = class extends L {
     if (!this._favorites.length) return e;
     if (!this._accountId)
       try {
-        this._accountId = await js(s, t.spotcast_account || void 0);
+        this._accountId = await Ns(s, t.spotcast_account || void 0);
       } catch {
         return e;
       }
-    return this._accountId ? (e = Fs(e, this._favorites, this._accountId), re(e, Vs(e, new Set(this._favorites.map((i) => i.uri))))) : e;
+    return this._accountId ? (e = Vs(e, this._favorites, this._accountId), re(e, Ws(e, new Set(this._favorites.map((i) => i.uri))))) : e;
   }
   /**
    * Spotify never deletes a playlist; "deleting" your own playlist just unfollows it, and it
@@ -3199,7 +3199,7 @@ let k = class extends L {
     var c;
     const i = (c = s.states[t.spotifyplus_entity]) == null ? void 0 : c.attributes.sp_user_id;
     if (typeof i != "string" || !i || !this._favorites.length) return e;
-    const r = Date.now(), n = new Set(this._favorites.map((u) => u.uri)), a = Ys(e, n, r, ai, oi), o = [], l = [];
+    const r = Date.now(), n = new Set(this._favorites.map((u) => u.uri)), a = Ks(e, n, r, oi, li), o = [], l = [];
     for (const u of a)
       try {
         const p = await ee(s, t.spotifyplus_entity, u);
@@ -3207,7 +3207,7 @@ let k = class extends L {
       } catch {
         l.push(u);
       }
-    return Ks(re(e, o), l, r);
+    return Zs(re(e, o), l, r);
   }
   _scheduleRefresh(s) {
     this._refreshTimer && window.clearTimeout(this._refreshTimer), this._refreshTimer = window.setTimeout(() => void this._refresh(), s);
@@ -3229,14 +3229,14 @@ let k = class extends L {
       this.showToast(`Still starting on ${i}…`);
       return;
     }
-    if (this.applyDefaultPresetIfCold(t, ge(t, e.cast_group_entity)), this._starting = { uri: s.uri, since: Date.now() }, this._activeUri = s.uri, this._history = Bs(this._history, s, Date.now()), this._startTimer && window.clearTimeout(this._startTimer), this._startTimer = window.setTimeout(() => {
+    if (this.applyDefaultPresetIfCold(t, ge(t, e.cast_group_entity)), this._starting = { uri: s.uri, since: Date.now() }, this._activeUri = s.uri, this._history = qs(this._history, s, Date.now()), this._startTimer && window.clearTimeout(this._startTimer), this._startTimer = window.setTimeout(() => {
       var a;
       ((a = this._starting) == null ? void 0 : a.uri) === s.uri && (this._starting = null, this.showToast(`${i} did not start within 60 s. Check the speakers and try again.`, 6e3));
     }, ne), e.start_script) {
       this._startTimer && window.clearTimeout(this._startTimer), this._startTimer = window.setTimeout(() => {
         var a;
         ((a = this._starting) == null ? void 0 : a.uri) === s.uri && (this._starting = null, this.showToast(`${i} did not start within 6 min. Check the speakers and try again.`, 6e3));
-      }, ii), Ts(t, e.start_script, {
+      }, ri), Ms(t, e.start_script, {
         context_uri: s.uri,
         device_name: i,
         group_entity: e.cast_group_entity,
@@ -3247,14 +3247,14 @@ let k = class extends L {
       return;
     }
     if (e.backend === "spotcast") {
-      Ns(t, e.cast_group_entity, s.uri, e.shuffle, e.spotcast_account || void 0).then(() => {
+      Ls(t, e.cast_group_entity, s.uri, e.shuffle, e.spotcast_account || void 0).then(() => {
         this._lastContextUri = s.uri, this._scheduleRefresh(wt);
       }).catch((a) => {
         this._starting = null, this._startTimer && window.clearTimeout(this._startTimer), this.showToast($(a), 8e3);
       });
       return;
     }
-    const r = () => Es(t, e.spotifyplus_entity, s.uri, e.device_name, e.shuffle);
+    const r = () => Ts(t, e.spotifyplus_entity, s.uri, e.device_name, e.shuffle);
     r().catch(async (a) => {
       var o;
       this.showToast(`${$(a)} Reloading SpotifyPlus and retrying…`, 8e3), this._starting = { uri: s.uri, since: Date.now() }, this._startTimer && window.clearTimeout(this._startTimer), this._startTimer = window.setTimeout(() => {
@@ -3262,12 +3262,12 @@ let k = class extends L {
         ((l = this._starting) == null ? void 0 : l.uri) === s.uri && (this._starting = null, this.showToast(`${e.device_name} did not start within 90 s. Check the speakers and try again.`, 6e3));
       }, ne + 3e4);
       try {
-        await zs(t, e.spotifyplus_entity, () => {
+        await Ds(t, e.spotifyplus_entity, () => {
           var l, c;
           return (c = (l = this._hass) == null ? void 0 : l.states[e.spotifyplus_entity]) == null ? void 0 : c.state;
-        }), await Us(t, e.spotifyplus_entity, e.device_name);
+        }), await Os(t, e.spotifyplus_entity, e.device_name);
       } catch {
-        await Os(t, e.spotifyplus_entity);
+        await zs(t, e.spotifyplus_entity);
       }
       ((o = this._starting) == null ? void 0 : o.uri) === s.uri && await r();
     }).then(() => this._scheduleRefresh(wt)).catch((a) => {
@@ -3289,7 +3289,7 @@ let k = class extends L {
       this._scriptDoneTimer = window.setTimeout(() => {
         var o;
         this._scriptDoneTimer = void 0, ((o = this._starting) == null ? void 0 : o.uri) === a && (this._starting = null, this._startTimer && window.clearTimeout(this._startTimer), this.showToast(`${this._groupLabel(s)} did not start. Check the speakers and the Home Assistant log.`, 8e3));
-      }, ri);
+      }, ni);
     }
   }
   // ---- render ------------------------------------------------------------

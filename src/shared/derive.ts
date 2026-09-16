@@ -150,3 +150,10 @@ export function errorText(e: unknown): string {
   }
   return String(e);
 }
+
+/** Epoch ms when a Spotify rate limit / quota block lifts, parsed from an integration's error text. */
+export function quotaRetryAt(message: string, now = Date.now()): number | null {
+  const m = /retry[- ]after:?\s*(\d+)\s*s|try again in\s*(\d+)\s*s/i.exec(message);
+  const secs = m ? Number(m[1] ?? m[2]) : NaN;
+  return Number.isFinite(secs) && secs > 0 ? now + secs * 1000 : null;
+}

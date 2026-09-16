@@ -2,7 +2,7 @@ import { html, nothing, type TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { normalizeSpConfig, type SpCardConfig, type SpNormalizedConfig } from './spotifyplus/config';
 import type { HomeAssistant, Playlist } from './shared/types';
-import { deriveNowPlaying, errorText, isGroupCold } from './shared/derive';
+import { deriveNowPlaying, errorText, isGroupCold, quotaRetryAt } from './shared/derive';
 import { SpeakerCardBase, type PlaylistStatus } from './shared/speaker-card-base';
 import * as media from './shared/media-services';
 import * as sp from './spotifyplus/services';
@@ -55,12 +55,6 @@ interface Starting {
   since: number;
 }
 
-/** Epoch ms when a Spotify rate limit / quota block lifts, parsed from an integration's error text. */
-export function quotaRetryAt(message: string, now = Date.now()): number | null {
-  const m = /retry[- ]after:?\s*(\d+)\s*s|try again in\s*(\d+)\s*s/i.exec(message);
-  const secs = m ? Number(m[1] ?? m[2]) : NaN;
-  return Number.isFinite(secs) && secs > 0 ? now + secs * 1000 : null;
-}
 
 /**
  * SpotifyPlus flavour: starts playlists as a real Spotify Connect session on the
