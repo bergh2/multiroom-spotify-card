@@ -86,3 +86,12 @@ describe('config: backend', () => {
     expect(() => normalizeSpConfig({ ...base, backend: 'spotcast', control_via: 'spotifyplus' } as never)).toThrow(/control_via/);
   });
 });
+
+describe('quotaRetryAt', () => {
+  it('parses the retry window from Spotcast and Home Assistant error texts', async () => {
+    const { quotaRetryAt } = await import('../src/multiroom-spotify-card');
+    expect(quotaRetryAt('Validation error: Too many requests (retry-after: 59088 seconds)', 1000)).toBe(1000 + 59088 * 1000);
+    expect(quotaRetryAt('Spotify is rate limiting this client id. Try again in 59323 s (after 12:00:51)', 0)).toBe(59323 * 1000);
+    expect(quotaRetryAt('Could not activate Spotify Cast application', 0)).toBeNull();
+  });
+});

@@ -55,6 +55,13 @@ interface Starting {
   since: number;
 }
 
+/** Epoch ms when a Spotify rate limit / quota block lifts, parsed from an integration's error text. */
+export function quotaRetryAt(message: string, now = Date.now()): number | null {
+  const m = /retry[- ]after:?\s*(\d+)\s*s|try again in\s*(\d+)\s*s/i.exec(message);
+  const secs = m ? Number(m[1] ?? m[2]) : NaN;
+  return Number.isFinite(secs) && secs > 0 ? now + secs * 1000 : null;
+}
+
 /**
  * SpotifyPlus flavour: starts playlists as a real Spotify Connect session on the
  * Cast group (so the Spotify app can take over), reads now-playing from the Cast
@@ -205,7 +212,16 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
       await this._ensureFavorites(hass, cfg);
       return true;
     } catch (e) {
-      console.warn('multiroom-spotify-card: playlist library unavailable, keeping the cached history:', errorText(e));
+      const msg = errorText(e);
+      console.warn('multiroom-spotify-card: playlist library unavailable, keeping the cached history:', msg);
+      // Spotify's daily quota: "retry-after: 59088 seconds" / "Try again in 59323 s". Remember the
+      // block in the shared cache so no dashboard instance asks again before it lifts (each
+      // refused call would only extend the block).
+      const until = quotaRetryAt(msg);
+      if (until) {
+        this._favoritesAt = until - FAVORITES_TTL_MS;
+        await sp.saveUserData(hass, `${cfg.history_key}:library`, { at: this._favoritesAt, backend: cfg.backend, items: this._favorites }).catch(() => undefined);
+      }
       return this._favorites.length > 0;
     }
   }
