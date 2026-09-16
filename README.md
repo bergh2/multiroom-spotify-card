@@ -42,7 +42,7 @@ Common to both cards:
 
 For `multiroom-spotify-card` (SpotifyPlus):
 
-- **[SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus) v1.0.86 or newer**, installed through HACS and set up with your own Spotify developer app (client id and secret).
+- **[SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus) v1.0.220 or newer** (v1.0.86 works but needs the workarounds under "Known issue" below), installed through HACS and set up with your own Spotify developer app (client id and secret).
 - The **Spotify Desktop Player token** configured in SpotifyPlus, following
   [Google Chromecast Device Support](https://github.com/thlucas1/homeassistantcomponent_spotifyplus/wiki/Device-Configuration-Options#google-chromecast-device-support)
   in the SpotifyPlus wiki. Without it SpotifyPlus cannot wake an idle Chromecast. Notes and a helper for creating the token on Windows are in [`tools/spotifyplus-auth`](tools/spotifyplus-auth/README.md).
@@ -165,9 +165,14 @@ Failed to connect to service HostServiceInfo(host='192.168.x.y', port=32127, ...
 Could not activate Spotify Cast application ... wait timed out after 20 s
 ```
 
-until the SpotifyPlus integration is reloaded. This is tracked upstream as
-[SpotifyPlus issue #248](https://github.com/thlucas1/homeassistantcomponent_spotifyplus/issues/248).
-Until it is fixed there, the card and two automations work around it:
+until the SpotifyPlus integration is reloaded. This was
+[SpotifyPlus issue #248](https://github.com/thlucas1/homeassistantcomponent_spotifyplus/issues/248)
+and is **fixed in SpotifyPlus v1.0.220** (library `spotifywebapipython` 1.0.294):
+the integration now asks the group members who the leader is and verifies the
+connection before every start. Update SpotifyPlus to 1.0.220 or newer and none
+of the workarounds below are needed. They remain documented for older versions,
+and `start_script` is still useful on its own because it keeps the start
+running server-side:
 
 1. **`start_script`** (see above): the start runs inside Home Assistant, verifies
    that the group actually started, and reloads SpotifyPlus and retries once if
