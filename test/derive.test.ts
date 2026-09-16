@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { activePreset, deriveNowPlaying, deriveSpeakers, groupSummary, isGroupCold, masterVolume, scaleVolumes } from '../src/shared/derive';
-import { normalizeConfig } from '../src/ma/config';
-import type { HomeAssistant, Speaker } from '../src/types';
+import { normalizeSpConfig as normalizeConfig } from '../src/spotifyplus/config';
+import type { HomeAssistant, Speaker } from '../src/shared/types';
 
 function hassWith(states: Record<string, { state: string; attributes: Record<string, unknown> }>): HomeAssistant {
   const out: HomeAssistant['states'] = {};
@@ -13,7 +13,8 @@ function hassWith(states: Record<string, { state: string; attributes: Record<str
 
 const cfg = normalizeConfig({
   type: 'x',
-  group_entity: 'media_player.g',
+  backend: 'spotcast',
+  cast_group_entity: 'media_player.g',
   speakers: [{ entity: 'media_player.a', name: 'Living' }, 'media_player.b', 'media_player.c'],
   presets: [
     { name: 'Focus', levels: { 'media_player.c': 46 } },
@@ -28,7 +29,7 @@ describe('deriveSpeakers', () => {
       'media_player.b': { state: 'idle', attributes: { volume_level: 0.284, is_volume_muted: true, friendly_name: 'Kök' } },
       'media_player.c': { state: 'unavailable', attributes: {} },
     });
-    const sp = deriveSpeakers(hass, cfg.speakers, cfg.group_entity);
+    const sp = deriveSpeakers(hass, cfg.speakers, cfg.cast_group_entity);
     expect(sp[0]).toMatchObject({ name: 'Living', vol: 42, on: true, available: true });
     expect(sp[1]).toMatchObject({ name: 'Kök', vol: 28, on: false, available: true });
     expect(sp[2]).toMatchObject({ name: 'c', vol: 0, on: false, available: false, standby: false });
@@ -40,7 +41,7 @@ describe('deriveSpeakers', () => {
       'media_player.b': { state: 'off', attributes: {} },
       'media_player.c': { state: 'off', attributes: {} },
     });
-    const sp = deriveSpeakers(hass, cfg.speakers, cfg.group_entity);
+    const sp = deriveSpeakers(hass, cfg.speakers, cfg.cast_group_entity);
     expect(sp[0]).toMatchObject({ standby: true, on: false, available: true });
     expect(groupSummary(sp)).toBe('Speakers idle');
     expect(activePreset(sp, cfg.presets, 3)).toBeNull();
@@ -127,7 +128,7 @@ describe('notInGroup', () => {
       'media_player.b': { state: 'off', attributes: {} },
       'media_player.c': { state: 'unavailable', attributes: {} },
     });
-    const sp = deriveSpeakers(hass, cfg.speakers, cfg.group_entity);
+    const sp = deriveSpeakers(hass, cfg.speakers, cfg.cast_group_entity);
     expect(sp[0].notInGroup).toBe(false);
     expect(sp[1]).toMatchObject({ standby: true, notInGroup: true });
     expect(sp[2].notInGroup).toBe(false);

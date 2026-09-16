@@ -6,9 +6,9 @@ export default defineConfig({
   server: { open: '/dev/index.html' },
   build: {
     lib: {
-      entry: 'src/multiroom-spotify-card-ma.ts',
+      entry: 'src/multiroom-spotify-card.ts',
       formats: ['es'],
-      fileName: () => 'multiroom-spotify-card-ma.js',
+      fileName: () => 'multiroom-spotify-card.js',
     },
     outDir: 'dist',
     emptyOutDir: false,

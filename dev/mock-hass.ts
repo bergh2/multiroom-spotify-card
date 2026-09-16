@@ -1,4 +1,4 @@
-import type { HassEntity, HomeAssistant } from '../src/types';
+import type { HassEntity, HomeAssistant } from '../src/shared/types';
 
 export interface MockHass extends HomeAssistant {
   /** Called with a fresh hass object whenever a state changes (mirrors HA replacing `hass`). */

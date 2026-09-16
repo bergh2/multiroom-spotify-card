@@ -6,7 +6,7 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const CARDS = ['multiroom-spotify-card-ma', 'multiroom-spotify-card-spotifyplus'];
+const CARDS = ['multiroom-spotify-card'];
 
 function envValue(name) {
   if (process.env[name]) return process.env[name];

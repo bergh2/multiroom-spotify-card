@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeConfig } from '../src/ma/config';
-import type { CardConfig } from '../src/types';
+import { normalizeSpConfig as normalizeConfig, type SpCardConfig as CardConfig } from '../src/spotifyplus/config';
 
 const base: CardConfig = {
-  type: 'custom:multiroom-spotify-card-ma',
-  group_entity: 'media_player.alla_2',
+  type: 'custom:multiroom-spotify-card',
+  backend: 'spotcast',
+  cast_group_entity: 'media_player.all',
   speakers: ['media_player.a', { entity: 'media_player.b', name: 'Kök' }],
 };
 
@@ -31,7 +31,7 @@ describe('normalizeConfig', () => {
   });
 
   it('rejects a missing group entity', () => {
-    expect(() => normalizeConfig({ ...base, group_entity: 'light.x' })).toThrow(/group_entity/);
+    expect(() => normalizeConfig({ ...base, cast_group_entity: 'light.x' })).toThrow(/cast_group_entity/);
   });
 
   it('rejects empty or duplicate speakers', () => {

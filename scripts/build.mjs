@@ -1,16 +1,11 @@
-// Builds each card as its own self-contained ES module in dist/.
+// Builds the card as a self-contained ES module in dist/.
 import { build } from 'vite';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-export const CARDS = [
-  { name: 'multiroom-spotify-card-ma', entry: 'src/multiroom-spotify-card-ma.ts' },
-  { name: 'multiroom-spotify-card-spotifyplus', entry: 'src/multiroom-spotify-card.ts' },
-  // combined bundle (both cards) that HACS installs
-  { name: 'multiroom-spotify-card', entry: 'src/multiroom-spotify-card-bundle.ts' },
-];
+export const CARDS = [{ name: 'multiroom-spotify-card', entry: 'src/multiroom-spotify-card.ts' }];
 
 for (const card of CARDS) {
   await build({

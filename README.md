@@ -7,12 +7,10 @@ have switched on.
 
 ![Multiroom Spotify Card in the two-column layout](docs/images/multiroom-spotify-card.png)
 
-Two cards are included, sharing the same design:
-
-| Card | Starts music through | Choose it when |
-|---|---|---|
-| `custom:multiroom-spotify-card` | [Spotcast](https://github.com/Mincka/spotcast) (recommended) or [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus): launches Spotify's own Cast receiver on the speaker group, so it is a real Spotify Connect session | You want to keep controlling the music from the Spotify app afterwards (recommended) |
-| `custom:multiroom-spotify-card-ma` | [Music Assistant](https://www.music-assistant.io/): MA streams the audio itself | You already run Music Assistant and don't need Spotify Connect |
+The card starts the music through [Spotcast](https://github.com/Mincka/spotcast)
+(recommended) or [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus).
+Both launch Spotify's own Cast receiver on the speaker group, so what plays is a
+real Spotify Connect session that the Spotify app can take over afterwards.
 
 ## Features
 
@@ -54,12 +52,6 @@ For `multiroom-spotify-card` with **SpotifyPlus** (alternative: richer play hist
   in the SpotifyPlus wiki. Without it SpotifyPlus cannot wake an idle Chromecast. Notes and a helper for creating the token on Windows are in [`tools/spotifyplus-auth`](tools/spotifyplus-auth/README.md).
 - The group must be discoverable over mDNS from the Home Assistant host (same network, or an mDNS reflector across VLANs). Check with `media_player.spotifyplus` → `source_list`: the group's name should be listed.
 - Optional but recommended: the [start script](docs/start-script.yaml) and the [automations](docs/automations.yaml) described under the known issue below.
-
-For `multiroom-spotify-card-ma` (Music Assistant), instead of SpotifyPlus:
-
-- The **[Music Assistant](https://www.music-assistant.io/) server** (add-on or container) with the **Spotify provider** configured, ideally with your own Spotify client id so you are not on MA's shared API allowance.
-- The **Music Assistant integration** in Home Assistant, which creates a second `media_player` entity for the Chromecast group. The card plays to that entity; the speaker rows still use the Google Cast entities.
-- Music Assistant plays the stream itself, so the Spotify app cannot see or control the session. If you want to keep using the Spotify app afterwards, use the SpotifyPlus card.
 
 ## Installation
 
@@ -117,28 +109,6 @@ How it works:
 - **Server-side start (recommended)**: set `start_script` to a Home Assistant script that receives `context_uri`, `device_name`, `group_entity` and `shuffle`, starts the context via SpotifyPlus, waits for the Cast group to report Spotify playing, and reloads SpotifyPlus and retries once if it does not. The card then only fires the script and shows "Starting on …" for as long as the script entity is running, so the recovery keeps going even when a phone suspends the dashboard, and the card never gives up before the script does. A ready-made script is in [`docs/start-script.yaml`](docs/start-script.yaml); without `start_script` the card does the same retry from the browser. Note that SpotifyPlus itself retries once internally, so a start that needs the reload takes two to three minutes; a normal start takes 10 to 30 seconds.
 - **API use**: refresh on load, a minute after a start, and every 10 minutes while the card is visible. Roughly 10 to 30 Spotify API calls per day. Spotify's developer quota is shared per developer account, so keep other integrations using the same account from polling aggressively.
 
-## Configuration: `multiroom-spotify-card-ma` (Music Assistant)
-
-```yaml
-type: custom:multiroom-spotify-card-ma
-group_entity: media_player.all_2             # Music Assistant entity of the Google Home group
-speakers:                                    # Google Cast entities (not the MA ones)
-  - entity: media_player.living_room
-    name: Living room
-  - entity: media_player.kitchen
-    name: Kitchen
-presets:
-  - name: Standard
-    levels: { media_player.living_room: 30, media_player.kitchen: 22 }
-default_preset: Standard
-ma_config_entry_id: ""                       # optional; auto-discovered when empty
-```
-
-Playlists come from `music_assistant.get_library`, sorted by last played or
-play count as tracked by Music Assistant. Only plays that went through Music
-Assistant count, and MA's stream is not a Spotify Connect session, so the
-Spotify app cannot control it.
-
 ## Options
 
 | Option | Default | Description |
@@ -159,8 +129,7 @@ Spotify app cannot control it.
 | `title`, `accent` | `Listening`, indigo | Header text and accent colour (any CSS colour). |
 | `backend` | `spotifyplus` | `spotcast` or `spotifyplus`: the integration that starts playback and lists your playlists. |
 | `spotcast_account` | default account | Spotcast config entry id, only when several Spotify accounts are set up in Spotcast. |
-| `multiroom-spotify-card` only: `cast_group_entity`, `spotifyplus_entity`, `device_name`, `control_via`, `shuffle`, `fill_with_favorites`, `history_key`, `start_script` | see above | |
-| Music Assistant only: `group_entity`, `ma_config_entry_id` | see above | |
+| `cast_group_entity`, `spotifyplus_entity`, `device_name`, `control_via`, `shuffle`, `fill_with_favorites`, `history_key`, `start_script` | see above | |
 
 ## Known issue: the Cast group changes leader
 
@@ -224,26 +193,30 @@ change with a timestamp so you can match it against the router's client history.
 npm install
 npm run dev        # mock preview: /dev/index.html (MA) and /dev/spotifyplus.html (SpotifyPlus)
 npm test           # unit tests (vitest)
-npm run build      # dist/: both cards separately plus the combined multiroom-spotify-card.js
-npm run deploy     # build + copy to HA_WWW_ROOT/<card>/ (set HA_WWW_ROOT in .env.local)
+npm run build      # dist/multiroom-spotify-card.js
+npm run deploy     # build + copy to HA_WWW_ROOT/multiroom-spotify-card/ (set HA_WWW_ROOT in .env.local)
 ```
 
 `src/shared/` holds everything backend-independent (styles, speaker logic, the
-`SpeakerCardBase` element); `src/ma/` and `src/spotifyplus/` the backend-specific
-parts; the `src/*-media-card*.ts` files are the bundle entries. The original
-design mockup and spec live in `docs/design/`.
+`SpeakerCardBase` element); `src/spotcast/` and `src/spotifyplus/` the
+backend-specific parts; `src/multiroom-spotify-card.ts` is the bundle entry. The
+original design mockup and spec live in `docs/design/`. Versions up to 1.2 also
+shipped a Music Assistant card (`custom:multiroom-spotify-card-ma`); it was
+dropped in 2.0, and the last release that contains it is
+[v1.2.0](https://github.com/bergh2/multiroom-spotify-card/releases/tag/v1.2.0).
 
 ## Acknowledgements
 
-These cards are only a front end. The heavy lifting is done by two projects
+This card is only a front end. The heavy lifting is done by two projects
 that deserve the credit:
 
+- [Spotcast](https://github.com/Mincka/spotcast), the maintained fork of
+  fondberg's original, which starts Spotify playback on idle Chromecasts through
+  Home Assistant's own Cast connection.
 - [SpotifyPlus](https://github.com/thlucas1/homeassistantcomponent_spotifyplus) by
   [thlucas1](https://github.com/thlucas1), which talks to the Spotify Web API and
-  wakes Chromecast devices as Spotify Connect targets. The `multiroom-spotify-card`
-  requires it. If you use that card, consider supporting the integration.
-- [Music Assistant](https://www.music-assistant.io/) and its Home Assistant
-  integration, which the `multiroom-spotify-card-ma` card builds on.
+  wakes Chromecast devices as Spotify Connect targets, and whose author fixed the
+  Cast group leader issue within a week of the report.
 
 The visual design was inspired by the classic
 [spotify-card](https://github.com/custom-cards/spotify-card) and its maintained
@@ -253,9 +226,9 @@ how good a playlist grid can look on a dashboard. No code was taken from either.
 ## Disclaimer
 
 This project is not affiliated with, endorsed by, or sponsored by Spotify AB,
-Google, Harman, or the authors of SpotifyPlus and Music Assistant. Spotify is a
+Google, Harman, or the authors of Spotcast and SpotifyPlus. Spotify is a
 trademark of Spotify AB; Chromecast, Google Home and Nest are trademarks of Google
-LLC. The cards use your own Spotify account through the integrations above and
+LLC. The card uses your own Spotify account through the integrations above and
 need a Spotify Premium subscription. Use at your own risk; see the license.
 
 ## License
