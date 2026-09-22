@@ -49,6 +49,8 @@ const VALIDATE_EVERY_MS = 24 * 60 * 60_000;
 const MAX_VALIDATIONS_PER_REFRESH = 5;
 /** Spotcast backend: playback observations closer than this count as the same listening session. */
 const SESSION_GAP_MS = 20 * 60_000;
+/** Spotcast backend: how long after the group starts playing to verify that the right context won. */
+const CONTEXT_CHECK_DELAY_MS = 4_000;
 
 interface Starting {
   uri: string;
@@ -77,6 +79,7 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
   private _intervalTimer?: number;
   private _startTimer?: number;
   private _scriptDoneTimer?: number;
+  private _contextCheckTimer?: number;
   private _historyLoaded = false;
   /** Spotcast backend: Spotify user id, for recognising the user's own (deleted) playlists */
   private _accountId: string | null = null;
@@ -163,7 +166,7 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
 
   override disconnectedCallback(): void {
     super.disconnectedCallback();
-    for (const t of [this._refreshTimer, this._intervalTimer, this._startTimer, this._scriptDoneTimer]) if (t) window.clearTimeout(t);
+    for (const t of [this._refreshTimer, this._intervalTimer, this._startTimer, this._scriptDoneTimer, this._contextCheckTimer]) if (t) window.clearTimeout(t);
     if (this._intervalTimer) window.clearInterval(this._intervalTimer);
   }
 
@@ -472,10 +475,12 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
     const app = typeof g?.attributes.app_name === 'string' ? g.attributes.app_name : '';
     const since = new Date(this._starting.since).toISOString();
     if (g?.state === 'playing' && /spotify/i.test(app) && hass.states[cfg.cast_group_entity].last_updated > since) {
+      const uri = this._starting.uri;
       this._starting = null;
       if (this._startTimer) window.clearTimeout(this._startTimer);
       if (this._scriptDoneTimer) window.clearTimeout(this._scriptDoneTimer);
       this._scriptDoneTimer = undefined;
+      if (cfg.backend === 'spotcast' && !cfg.start_script) this._scheduleContextCheck(uri);
       return;
     }
     // Server-side start: the script stays "on" until it knows the outcome (it waits for the
@@ -492,6 +497,31 @@ export class MultiroomSpotifyCard extends SpeakerCardBase {
         this.showToast(`${this._groupLabel(hass)} did not start. Check the speakers and the Home Assistant log.`, 8000);
       }, SCRIPT_GRACE_MS);
     }
+  }
+
+  /**
+   * When the Spotify Cast app logs the group in, it resumes whatever the account played last,
+   * and that resume can land a second after Spotcast's play command and override it: the group
+   * then plays yesterday's podcast instead of the tapped playlist. Once the group reports
+   * playing, ask Spotify what context is running (one API call) and, if it is not the one we
+   * asked for, send the play command once more; with the device now active it sticks.
+   */
+  private _scheduleContextCheck(uri: string): void {
+    if (this._contextCheckTimer) window.clearTimeout(this._contextCheckTimer);
+    this._contextCheckTimer = window.setTimeout(async () => {
+      this._contextCheckTimer = undefined;
+      const hass = this._hass;
+      const cfg = this._config;
+      if (!hass || !cfg || this._starting) return;
+      try {
+        const ctx = await sc.getPlaybackContext(hass, cfg.spotcast_account || undefined);
+        if (!ctx.isPlaying || ctx.contextUri === uri) return;
+        await sc.playMedia(hass, cfg.cast_group_entity, uri, cfg.shuffle, cfg.spotcast_account || undefined);
+        this._lastContextUri = uri;
+      } catch (e) {
+        console.warn('multiroom-spotify-card: could not verify the playing context:', errorText(e));
+      }
+    }, CONTEXT_CHECK_DELAY_MS);
   }
 
   // ---- render ------------------------------------------------------------

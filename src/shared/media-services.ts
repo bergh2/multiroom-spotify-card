@@ -16,6 +16,23 @@ export const setVolume = (hass: HomeAssistant, entity: string, vol: number) =>
 export const setMute = (hass: HomeAssistant, entities: string | string[], muted: boolean) =>
   mp(hass, 'volume_mute', entities, { is_volume_muted: muted });
 
+/**
+ * A Cast speaker whose socket is reconnecting (it happens right when a group launches)
+ * refuses volume commands with "Failed to execute set volume". Retry once after a pause.
+ */
+async function withRetry(run: () => Promise<unknown>, delayMs = 2500): Promise<unknown> {
+  try {
+    return await run();
+  } catch (e) {
+    await new Promise((r) => setTimeout(r, delayMs));
+    try {
+      return await run();
+    } catch {
+      throw e;
+    }
+  }
+}
+
 /** Unmute + set the volume for speakers listed in the preset, mute every other configured speaker. */
 export async function applyPreset(hass: HomeAssistant, speakers: Speaker[], preset: PresetConfig): Promise<void> {
   const calls: Promise<unknown>[] = [];
@@ -28,9 +45,10 @@ export async function applyPreset(hass: HomeAssistant, speakers: Speaker[], pres
       if (sp.on || sp.standby) toMute.push(sp.entity);
       continue;
     }
-    if (!sp.on) calls.push(setMute(hass, sp.entity, false));
-    calls.push(setVolume(hass, sp.entity, level));
+    if (!sp.on) calls.push(withRetry(() => setMute(hass, sp.entity, false)));
+    calls.push(withRetry(() => setVolume(hass, sp.entity, level)));
   }
-  if (toMute.length) calls.push(setMute(hass, toMute, true));
+  // mute one by one, so a single unreachable speaker does not fail the whole batch
+  for (const entity of toMute) calls.push(withRetry(() => setMute(hass, entity, true)));
   await Promise.all(calls);
 }
