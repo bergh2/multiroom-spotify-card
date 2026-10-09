@@ -1,8 +1,12 @@
 import type { HomeAssistant, PresetConfig, Speaker } from './types';
 
-/** Plain `media_player.*` calls, valid for any media_player entity (Cast, MA, SpotifyPlus). */
+/**
+ * Plain `media_player.*` calls, valid for any media_player entity (Cast, MA, SpotifyPlus).
+ * notifyOnError is off: the frontend would otherwise show its own toast on the first
+ * failure, before `withRetry` gets its second attempt. The card toasts what finally fails.
+ */
 const mp = (hass: HomeAssistant, service: string, entity: string | string[], data?: Record<string, unknown>) =>
-  hass.callService('media_player', service, data, { entity_id: entity });
+  hass.callService('media_player', service, data, { entity_id: entity }, false);
 
 export const playPause = (hass: HomeAssistant, entity: string) => mp(hass, 'media_play_pause', entity);
 export const nextTrack = (hass: HomeAssistant, entity: string) => mp(hass, 'media_next_track', entity);
@@ -20,7 +24,7 @@ export const setMute = (hass: HomeAssistant, entities: string | string[], muted:
  * A Cast speaker whose socket is reconnecting (it happens right when a group launches)
  * refuses volume commands with "Failed to execute set volume". Retry once after a pause.
  */
-async function withRetry(run: () => Promise<unknown>, delayMs = 2500): Promise<unknown> {
+export async function withRetry(run: () => Promise<unknown>, delayMs = 2500): Promise<unknown> {
   try {
     return await run();
   } catch (e) {

@@ -1835,7 +1835,7 @@ function es(i, t) {
   }
   return i.duration !== null && (e = Math.min(e, i.duration)), Math.max(0, e);
 }
-const H = (i, t, e, s) => i.callService("media_player", t, s, { entity_id: e }), ss = (i, t) => H(i, "media_play_pause", t), is = (i, t) => H(i, "media_next_track", t), rs = (i, t) => H(i, "media_previous_track", t), ns = (i, t, e) => H(i, "media_seek", t, { seek_position: Math.max(0, Math.round(e)) }), me = (i, t, e) => H(i, "volume_set", t, { volume_level: Math.max(0, Math.min(100, e)) / 100 }), D = (i, t, e) => H(i, "volume_mute", t, { is_volume_muted: e });
+const H = (i, t, e, s) => i.callService("media_player", t, s, { entity_id: e }, !1), ss = (i, t) => H(i, "media_play_pause", t), is = (i, t) => H(i, "media_next_track", t), rs = (i, t) => H(i, "media_previous_track", t), ns = (i, t, e) => H(i, "media_seek", t, { seek_position: Math.max(0, Math.round(e)) }), me = (i, t, e) => H(i, "volume_set", t, { volume_level: Math.max(0, Math.min(100, e)) / 100 }), D = (i, t, e) => H(i, "volume_mute", t, { is_volume_muted: e });
 async function dt(i, t = 2500) {
   try {
     return await i();
