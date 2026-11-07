@@ -419,7 +419,8 @@ export const styles = css`
     display: flex;
     align-items: center;
     cursor: pointer;
-    touch-action: none;
+    /* vertical swipes scroll the page; the card handles sideways drags */
+    touch-action: pan-y;
   }
   .speaker-row.unavailable .track-hit {
     cursor: default;
@@ -556,7 +557,8 @@ export const styles = css`
   .progress-hit {
     margin-top: 10px;
     cursor: pointer;
-    touch-action: none;
+    /* vertical swipes scroll the page; the card handles sideways drags */
+    touch-action: pan-y;
   }
   .progress-hit.disabled {
     cursor: default;

@@ -10,6 +10,7 @@ import { livePosition } from './position';
 import * as media from './media-services';
 import { clamp01, fmtTime } from './format';
 import { throttle } from './throttle';
+import { classifyGesture, relativeValue } from './gesture';
 
 declare global {
   interface Window {
@@ -244,54 +245,117 @@ export abstract class SpeakerCardBase extends LitElement {
     return t;
   }
 
-  private _capture(e: PointerEvent): HTMLElement {
-    e.preventDefault();
+  /**
+   * Drive a slider from a pointerdown. Mouse/pen: the value follows the pointer from the
+   * first press. Touch: nothing happens until the finger moves sideways (a vertical move
+   * is left to the browser as a page scroll), then the value moves relative to `value0`;
+   * a tap without movement changes nothing. Values are fractions 0..1.
+   */
+  private _slide(
+    e: PointerEvent,
+    o: { value0: number; begin?: () => void; move: (v: number) => void; end: (v: number) => void },
+  ): void {
     const el = e.currentTarget as HTMLElement;
-    try {
-      el.setPointerCapture(e.pointerId);
-    } catch {
-      /* not supported */
-    }
-    return el;
-  }
-
-  private _track(el: HTMLElement, move: (ev: PointerEvent) => void, up: (ev: PointerEvent) => void): void {
-    const done = (ev: PointerEvent) => {
-      el.removeEventListener('pointermove', move);
-      el.removeEventListener('pointerup', done);
-      el.removeEventListener('pointercancel', done);
-      up(ev);
+    const id = e.pointerId;
+    const absolute = (ev: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      return clamp01((ev.clientX - r.left) / Math.max(1, r.width));
     };
-    el.addEventListener('pointermove', move);
-    el.addEventListener('pointerup', done);
-    el.addEventListener('pointercancel', done);
-  }
+    const listen = (move: (ev: PointerEvent) => void, finish: (ev: PointerEvent) => void) => {
+      const onMove = (ev: PointerEvent) => {
+        if (ev.pointerId === id) move(ev);
+      };
+      const onEnd = (ev: PointerEvent) => {
+        if (ev.pointerId !== id) return;
+        stop();
+        finish(ev);
+      };
+      const stop = () => {
+        el.removeEventListener('pointermove', onMove);
+        el.removeEventListener('pointerup', onEnd);
+        el.removeEventListener('pointercancel', onEnd);
+      };
+      el.addEventListener('pointermove', onMove);
+      el.addEventListener('pointerup', onEnd);
+      el.addEventListener('pointercancel', onEnd);
+      return stop;
+    };
+    const capture = () => {
+      try {
+        el.setPointerCapture(id);
+      } catch {
+        /* not supported */
+      }
+    };
 
-  private _pct(el: HTMLElement, ev: PointerEvent): number {
-    const r = el.getBoundingClientRect();
-    return Math.round(clamp01((ev.clientX - r.left) / r.width) * 100);
+    if (e.pointerType !== 'touch') {
+      e.preventDefault();
+      capture();
+      o.begin?.();
+      let last = absolute(e);
+      o.move(last);
+      listen(
+        (ev) => {
+          last = absolute(ev);
+          o.move(last);
+        },
+        (ev) => o.end(ev.type === 'pointerup' ? absolute(ev) : last),
+      );
+      return;
+    }
+
+    const x0 = e.clientX;
+    const y0 = e.clientY;
+    const width = el.getBoundingClientRect().width;
+    let dragging = false;
+    let last = o.value0;
+    const at = (ev: PointerEvent) => relativeValue(o.value0, ev.clientX - x0, width);
+    const stop = listen(
+      (ev) => {
+        if (!dragging) {
+          const kind = classifyGesture(ev.clientX - x0, ev.clientY - y0);
+          if (kind === 'pending') return;
+          if (kind === 'scroll') {
+            stop();
+            return;
+          }
+          dragging = true;
+          capture();
+          o.begin?.();
+        }
+        ev.preventDefault();
+        last = at(ev);
+        o.move(last);
+      },
+      (ev) => {
+        if (dragging) o.end(ev.type === 'pointerup' ? at(ev) : last);
+      },
+    );
   }
 
   private _dragStart(e: PointerEvent, sp: Speaker): void {
     const hass = this._hass;
     if (!hass || !sp.available) return;
-    const el = this._capture(e);
-    if (!sp.on) this.run(media.setMute(hass, sp.entity, false));
-    this._lastSent.delete(sp.entity);
     const send = this._throttleFor(sp.entity);
-    const move = (ev: PointerEvent) => {
-      const v = this._pct(el, ev);
-      this._remember(sp.entity, { vol: v, on: true });
-      this._overrides.set(sp.entity, { vol: v, on: true, until: Infinity });
-      this.requestUpdate();
-      send(v);
-    };
-    this._track(el, move, (ev) => {
-      const v = this._pct(el, ev);
-      this._bump(sp.entity, { vol: v, on: true });
-      this._sendVolume(sp.entity, v);
+    this._slide(e, {
+      value0: (sp.on ? sp.vol : 0) / 100,
+      begin: () => {
+        if (!sp.on) this.run(media.setMute(hass, sp.entity, false));
+        this._lastSent.delete(sp.entity);
+      },
+      move: (f) => {
+        const v = Math.round(f * 100);
+        this._remember(sp.entity, { vol: v, on: true });
+        this._overrides.set(sp.entity, { vol: v, on: true, until: Infinity });
+        this.requestUpdate();
+        send(v);
+      },
+      end: (f) => {
+        const v = Math.round(f * 100);
+        this._bump(sp.entity, { vol: v, on: true });
+        this._sendVolume(sp.entity, v);
+      },
     });
-    move(e);
   }
 
   private _sendMaster(speakers: Speaker[], target: number): void {
@@ -303,17 +367,14 @@ export abstract class SpeakerCardBase extends LitElement {
     if (!hass) return;
     // Nothing is on: treat the drag as "play on all" at the chosen level.
     let base = speakers.filter((s) => s.on && s.available);
-    if (!base.length) {
+    const wake = !base.length;
+    if (wake) {
       base = speakers.filter((s) => s.available && !s.notInGroup).map((s) => ({ ...s, on: true, vol: 0 }));
       if (!base.length) return;
-      this.run(media.setMute(hass, base.map((s) => s.entity), false));
     }
-    const el = this._capture(e);
-    for (const s of base) this._lastSent.delete(s.entity);
     if (!this._masterThrottle) {
       this._masterThrottle = throttle<number>((t) => this._sendMaster(this._masterBase, t), VOLUME_THROTTLE_MS);
     }
-    this._masterBase = base;
     const show = (t: number, until: number) => {
       for (const [entity, vol] of scaleVolumes(base, t)) {
         this._remember(entity, { vol, on: true });
@@ -321,41 +382,45 @@ export abstract class SpeakerCardBase extends LitElement {
       }
       this.requestUpdate();
     };
-    const move = (ev: PointerEvent) => {
-      const t = this._pct(el, ev);
-      show(t, Infinity);
-      this._masterThrottle!(t);
-    };
-    this._track(el, move, (ev) => {
-      const t = this._pct(el, ev);
-      show(t, Date.now() + OVERRIDE_MS);
-      this._sendMaster(base, t);
-      window.setTimeout(() => this.requestUpdate(), OVERRIDE_MS + 50);
+    this._slide(e, {
+      value0: (masterVolume(speakers) ?? 0) / 100,
+      begin: () => {
+        if (wake) this.run(media.setMute(hass, base.map((s) => s.entity), false));
+        for (const s of base) this._lastSent.delete(s.entity);
+        this._masterBase = base;
+      },
+      move: (f) => {
+        const t = Math.round(f * 100);
+        show(t, Infinity);
+        this._masterThrottle!(t);
+      },
+      end: (f) => {
+        const t = Math.round(f * 100);
+        show(t, Date.now() + OVERRIDE_MS);
+        this._sendMaster(base, t);
+        window.setTimeout(() => this.requestUpdate(), OVERRIDE_MS + 50);
+      },
     });
-    move(e);
   }
 
   // ---- seek --------------------------------------------------------------
 
   private _seekStart(e: PointerEvent, np: NowPlaying, send: (seconds: number) => Promise<unknown> | void): void {
     if (!np.duration) return;
-    const el = this._capture(e);
     const duration = np.duration;
-    const pos = (ev: PointerEvent) => {
-      const r = el.getBoundingClientRect();
-      return clamp01((ev.clientX - r.left) / r.width) * duration;
-    };
-    const move = (ev: PointerEvent) => {
-      this._seek = { pos: pos(ev), until: Infinity, stamp: np.positionUpdatedAt };
-      this.requestUpdate();
-    };
-    this._track(el, move, (ev) => {
-      const p = pos(ev);
-      this._seek = { pos: p, until: Date.now() + 2500, stamp: np.positionUpdatedAt };
-      this.requestUpdate();
-      this.run(send(p));
+    this._slide(e, {
+      value0: clamp01(this.position(np, Date.now()) / duration),
+      move: (f) => {
+        this._seek = { pos: f * duration, until: Infinity, stamp: np.positionUpdatedAt };
+        this.requestUpdate();
+      },
+      end: (f) => {
+        const p = f * duration;
+        this._seek = { pos: p, until: Date.now() + 2500, stamp: np.positionUpdatedAt };
+        this.requestUpdate();
+        this.run(send(p));
+      },
     });
-    move(e);
   }
 
   protected position(np: NowPlaying, now: number): number {
